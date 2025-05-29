@@ -10,7 +10,7 @@ import CategoryChart from "@/components/CategoryChart";
 import FinancialInsight from "@/components/FinancialInsight";
 import type { Transaction } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListChecks, LineChart, Receipt, Lightbulb, Edit3, PlusCircle, Loader2, AlertTriangle, UserCheck } from "lucide-react";
+import { ListChecks, LineChart, Receipt, Lightbulb, Edit3, PlusCircle, Loader2, AlertTriangle, UserCheck, BarChart3 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +18,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Accordion,
@@ -44,14 +45,18 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   React.useEffect(() => {
-    if (!currentUser || authLoading) {
-      if (!currentUser && !authLoading) {
-        setTransactions([]);
-        setIsLoadingTransactions(false);
-      }
+    if (authLoading) { // Only check authLoading, currentUser might be null briefly
+      setIsLoadingTransactions(true); // Keep loading transactions if auth state is still resolving
       return;
     }
 
+    if (!currentUser) {
+      setTransactions([]);
+      setIsLoadingTransactions(false);
+      setError(null); // Clear any previous errors
+      return;
+    }
+    
     setIsLoadingTransactions(true);
     const transactionsColPath = `users/${currentUser.uid}/transactions`;
     const transactionsCol = collection(db, transactionsColPath);
@@ -74,8 +79,8 @@ export default function HomePage() {
       setError("Gagal memuat transaksi. Silakan coba lagi nanti.");
       setIsLoadingTransactions(false);
       toast({
-        title: "Error",
-        description: "Tidak dapat mengambil data transaksi.",
+        title: "Error Memuat Transaksi",
+        description: "Tidak dapat mengambil data transaksi dari server.",
         variant: "destructive",
       });
     });
@@ -110,8 +115,8 @@ export default function HomePage() {
     } catch (e) {
       console.error("Error adding transaction: ", e);
       toast({
-        title: "Error",
-        description: "Tidak dapat menambahkan transaksi.",
+        title: "Gagal Menambahkan",
+        description: "Tidak dapat menambahkan transaksi ke server.",
         variant: "destructive",
       });
     }
@@ -122,7 +127,6 @@ export default function HomePage() {
     if (isMobile) {
       setIsModalOpen(true);
     } else {
-      // Scroll to top on desktop view
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -150,8 +154,8 @@ export default function HomePage() {
     } catch (e) {
       console.error("Error updating transaction: ", e);
       toast({
-        title: "Error",
-        description: "Tidak dapat memperbarui transaksi.",
+        title: "Gagal Memperbarui",
+        description: "Tidak dapat memperbarui transaksi di server.",
         variant: "destructive",
       });
     }
@@ -169,8 +173,8 @@ export default function HomePage() {
     } catch (e) {
       console.error("Error deleting transaction: ", e);
       toast({
-        title: "Error",
-        description: "Tidak dapat menghapus transaksi.",
+        title: "Gagal Menghapus",
+        description: "Tidak dapat menghapus transaksi dari server.",
         variant: "destructive",
       });
     }
@@ -189,15 +193,14 @@ export default function HomePage() {
     }
   }, [isMobile, editingTransaction, isModalOpen]);
 
-
-  if (authLoading || (isMobile === undefined && isLoadingTransactions && !currentUser)) {
+  if (authLoading || (isMobile === undefined && !currentUser)) { // Simplified loading for initial SSR/hydration
     return (
-      <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <div className="flex flex-col min-h-screen">
         <Header />
         <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="ml-4 text-lg">Memuat data pengguna...</p>
+            <p className="ml-4 text-lg text-foreground">Memuat...</p>
           </div>
         </main>
       </div>
@@ -206,52 +209,51 @@ export default function HomePage() {
 
   if (!currentUser) {
     return (
-      <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <div className="flex flex-col min-h-screen">
         <Header />
-        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-          <Card className="shadow-lg mt-10">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-center text-2xl">
-                <UserCheck className="mr-3 h-8 w-8 text-primary" />
-                Selamat Datang di FinTrack Lite
-              </CardTitle>
+        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8 flex items-center justify-center">
+          <Card className="shadow-xl max-w-md w-full">
+            <CardHeader className="items-center">
+              <UserCheck className="h-12 w-12 text-primary mb-3" />
+              <CardTitle className="text-2xl text-center">Selamat Datang di FinTrack Lite</CardTitle>
             </CardHeader>
             <CardContent className="text-center">
               <p className="text-lg text-muted-foreground mb-6">
-                Silakan login untuk mulai mengelola keuangan Anda.
+                Silakan login untuk mulai mengelola keuangan Anda dan mendapatkan wawasan finansial.
               </p>
-              {/* Login button is in the Header */}
+              {/* Login button is in the Header, which calls signInWithGoogle from AuthContext */}
             </CardContent>
           </Card>
         </main>
       </div>
     );
   }
-
+  
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
+    <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-        {isLoadingTransactions && (
+        {isLoadingTransactions && !transactions.length && ( // Show loading only if no transactions yet
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
-            <p className="ml-4 text-lg">Memuat transaksi...</p>
+            <p className="ml-4 text-lg text-foreground">Memuat transaksi...</p>
           </div>
         )}
         {error && !isLoadingTransactions && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertTriangle className="h-4 w-4" />
+          <Alert variant="destructive" className="mb-6 shadow-md">
+            <AlertTriangle className="h-5 w-5" />
+            <AlertTitle>Oops! Terjadi Kesalahan</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {!isLoadingTransactions && !error && (
+        {(!isLoadingTransactions || transactions.length > 0) && !error && ( // Render content if not loading or if transactions exist
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
-              <Card className="shadow-lg">
+              <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <LineChart className="mr-2 h-5 w-5 text-primary" />
+                  <CardTitle className="flex items-center text-xl font-semibold">
+                    <LineChart className="mr-3 h-6 w-6 text-primary" />
                     Ringkasan Bulanan
                   </CardTitle>
                 </CardHeader>
@@ -264,17 +266,17 @@ export default function HomePage() {
                 </CardContent>
               </Card>
 
-              <Accordion type="single" collapsible className="w-full">
+              <Accordion type="single" collapsible className="w-full" defaultValue="item-kategori">
                 <AccordionItem value="item-kategori" className="border-none">
-                  <Card className="shadow-lg">
-                    <AccordionTrigger className="hover:no-underline p-6 w-full">
-                      <CardTitle className="flex items-center">
-                        <LineChart className="mr-2 h-5 w-5 text-primary" />
+                  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
+                    <AccordionTrigger className="hover:no-underline p-6 w-full rounded-t-lg">
+                      <CardTitle className="flex items-center text-xl font-semibold">
+                        <BarChart3 className="mr-3 h-6 w-6 text-primary" />
                         Kategori Pengeluaran
                       </CardTitle>
                     </AccordionTrigger>
                     <AccordionContent>
-                      <CardContent> {/* Has p-6 pt-0 by default */}
+                      <CardContent className="pt-2">
                         <CategoryChart
                           transactions={transactions}
                           selectedMonth={selectedMonth}
@@ -285,10 +287,10 @@ export default function HomePage() {
                 </AccordionItem>
               </Accordion>
               
-              <Card className="shadow-lg">
+              <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <ListChecks className="mr-2 h-5 w-5 text-primary" />
+                  <CardTitle className="flex items-center text-xl font-semibold">
+                    <ListChecks className="mr-3 h-6 w-6 text-primary" />
                     Riwayat Transaksi
                   </CardTitle>
                 </CardHeader>
@@ -307,15 +309,14 @@ export default function HomePage() {
               {isMobile === true && (
                 <>
                   <Button
-                    className="fixed flex items-center bottom-6 right-6 z-50 px-4 py-3 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-base"
+                    className="fixed flex items-center bottom-6 right-6 z-50 px-4 py-3 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-lg justify-center"
                     onClick={() => {
                       setEditingTransaction(null); 
                       setIsModalOpen(true);
                     }}
                     aria-label="Tambah Transaksi Baru"
                   >
-                    <PlusCircle className="mr-2 h-5 w-5" />
-                    <span>Tambah</span>
+                    <PlusCircle className="h-6 w-6" />
                   </Button>
                   <Dialog open={isModalOpen} onOpenChange={(open) => {
                     setIsModalOpen(open);
@@ -323,9 +324,12 @@ export default function HomePage() {
                       setEditingTransaction(null); 
                     }
                   }}>
-                    <DialogContent className="p-4 sm:max-w-md">
+                    <DialogContent className="p-4 sm:max-w-md rounded-lg">
                       <DialogHeader>
-                        <DialogTitle>{editingTransaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}</DialogTitle>
+                        <DialogTitle className="text-xl">{editingTransaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}</DialogTitle>
+                         <DialogDescription>
+                          {editingTransaction ? "Perbarui detail transaksi Anda di bawah ini." : "Masukkan detail transaksi baru Anda."}
+                        </DialogDescription>
                       </DialogHeader>
                       <div className="py-4">
                         <TransactionForm
@@ -342,10 +346,10 @@ export default function HomePage() {
 
               {(isMobile === false || isMobile === undefined) && ( 
                 <>
-                  <Card className="shadow-lg">
+                  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardHeader>
-                      <CardTitle className="flex items-center">
-                        {editingTransaction ? <Edit3 className="mr-2 h-5 w-5 text-primary" /> : <Receipt className="mr-2 h-5 w-5 text-primary" />}
+                      <CardTitle className="flex items-center text-xl font-semibold">
+                        {editingTransaction ? <Edit3 className="mr-3 h-6 w-6 text-primary" /> : <Receipt className="mr-3 h-6 w-6 text-primary" />}
                         {editingTransaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}
                       </CardTitle>
                     </CardHeader>
@@ -359,10 +363,10 @@ export default function HomePage() {
                     </CardContent>
                   </Card>
                   
-                  <Card className="shadow-lg">
+                  <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardHeader>
-                      <CardTitle className="flex items-center">
-                        <Lightbulb className="mr-2 h-5 w-5 text-primary" />
+                      <CardTitle className="flex items-center text-xl font-semibold">
+                        <Lightbulb className="mr-3 h-6 w-6 text-primary" />
                         Wawasan Keuangan AI
                       </CardTitle>
                     </CardHeader>
@@ -377,6 +381,27 @@ export default function HomePage() {
               )}
             </div>
           </div>
+        )}
+        {/* Fallback if no transactions and not loading and no error (e.g. new user) */}
+        {!isLoadingTransactions && !error && transactions.length === 0 && (
+           <Card className="shadow-lg mt-10 col-span-full">
+            <CardHeader className="items-center">
+              <CardTitle className="text-xl text-center">Mulai Lacak Keuangan Anda!</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-muted-foreground mb-4">
+                Sepertinya Anda belum memiliki transaksi. Tambahkan transaksi pertama Anda untuk memulai.
+              </p>
+              {isMobile === false && (
+                <p className="text-sm text-muted-foreground">Gunakan formulir di sebelah kanan.</p>
+              )}
+               {isMobile === true && (
+                <Button onClick={() => { setEditingTransaction(null); setIsModalOpen(true); }}>
+                  <PlusCircle className="mr-2 h-5 w-5" /> Tambah Transaksi
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         )}
       </main>
     </div>

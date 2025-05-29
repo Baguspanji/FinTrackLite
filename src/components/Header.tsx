@@ -1,8 +1,9 @@
 
 "use client";
 
-import { PiggyBank, LogIn, LogOut, UserCircle2 } from 'lucide-react';
+import { PiggyBank, LogIn, LogOut, UserCircle2, Sun, Moon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/contexts/ThemeContext'; // Import useTheme
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -15,10 +16,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 export default function Header() {
-  const { currentUser, signInWithGoogle, signOut, loading } = useAuth();
+  const { currentUser, signInWithGoogle, signOut, loading: authLoading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="bg-card border-b border-border shadow-sm">
+    <header className="bg-card border-b border-border shadow-sm sticky top-0 z-50">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 h-16 flex items-center justify-between">
         <div className="flex items-center">
           <PiggyBank className="h-8 w-8 text-primary" />
@@ -26,9 +28,18 @@ export default function Header() {
             FinTrack Lite
           </h1>
         </div>
-        <div className="flex items-center space-x-4">
-          {loading ? (
-            <Button variant="outline" size="sm" disabled>
+        <div className="flex items-center space-x-2 md:space-x-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleTheme}
+            aria-label={theme === "light" ? "Aktifkan mode gelap" : "Aktifkan mode terang"}
+            className="h-9 w-9 md:h-10 md:w-10"
+          >
+            {theme === "light" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+          </Button>
+          {authLoading ? (
+            <Button variant="outline" size="sm" disabled className="h-9 md:h-10">
               Memuat...
             </Button>
           ) : currentUser ? (
@@ -62,9 +73,9 @@ export default function Header() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Button variant="outline" onClick={signInWithGoogle}>
+            <Button variant="outline" onClick={signInWithGoogle} size="sm" className="h-9 md:h-10">
               <LogIn className="mr-2 h-4 w-4" />
-              Login dengan Google
+              Login
             </Button>
           )}
         </div>

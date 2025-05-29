@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { format } from "date-fns";
+import { id as idLocale } from "date-fns/locale"; // Corrected locale import
 import { CalendarIcon, PlusCircle, Save, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -75,7 +76,7 @@ export default function TransactionForm({
       category: CATEGORIES_ARRAY_ID[0],
       description: "",
       type: "expense",
-      date: new Date(0), 
+      date: new Date(0), // Use a non-dynamic initial date to avoid hydration issues
     },
   });
 
@@ -83,10 +84,11 @@ export default function TransactionForm({
     if (editingTransaction) {
       form.reset({
         ...editingTransaction,
-        date: new Date(editingTransaction.date),
+        date: new Date(editingTransaction.date), // Ensure date is a Date object
         amount: Number(editingTransaction.amount),
       });
     } else {
+      // For new transactions, set the date to now, client-side
       form.reset({
         date: new Date(), 
         amount: NaN,
@@ -95,7 +97,8 @@ export default function TransactionForm({
         type: "expense",
       });
     }
-  }, [editingTransaction, form.reset]); 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingTransaction, form.reset]); // form.reset should be stable, but included for completeness
 
   function onSubmit(data: TransactionFormValues) {
     if (editingTransaction && onUpdateTransaction) {
@@ -103,6 +106,7 @@ export default function TransactionForm({
     } else {
       addTransaction(data);
     }
+    // Reset form to new transaction state after submission
     form.reset({
         date: new Date(),
         amount: NaN,
@@ -116,6 +120,7 @@ export default function TransactionForm({
     if (onCancelEdit) {
       onCancelEdit();
     }
+     // Reset form to new transaction state
      form.reset({
         date: new Date(),
         amount: NaN,
@@ -172,7 +177,10 @@ export default function TransactionForm({
                     placeholder="0"
                     {...field}
                     value={isNaN(field.value) ? '' : field.value}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || '')} 
+                    onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        field.onChange(isNaN(value) ? '' : value);
+                    }}
                     step="1" // For IDR, typically no decimals
                 />
               </FormControl>
@@ -222,8 +230,8 @@ export default function TransactionForm({
                         !field.value && "text-muted-foreground" 
                       )}
                     >
-                      {field.value ? (
-                        format(field.value, "PPP", { locale: require('date-fns/locale/id') })
+                      {field.value instanceof Date && !isNaN(field.value.getTime()) ? ( // Ensure field.value is a valid Date
+                        format(field.value, "PPP", { locale: idLocale }) // Use imported idLocale
                       ) : (
                         <span>Pilih tanggal</span>
                       )}
@@ -234,13 +242,13 @@ export default function TransactionForm({
                 <PopoverContent className="w-auto p-0" align="start">
                   <Calendar
                     mode="single"
-                    selected={field.value}
+                    selected={field.value instanceof Date && !isNaN(field.value.getTime()) ? field.value : undefined} // Ensure selected is a valid Date or undefined
                     onSelect={field.onChange}
                     disabled={(date) =>
                       date > new Date() || date < new Date("1900-01-01")
                     }
                     initialFocus
-                    locale={require('date-fns/locale/id')}
+                    locale={idLocale} // Use imported idLocale
                   />
                 </PopoverContent>
               </Popover>

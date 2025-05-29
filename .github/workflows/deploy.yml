@@ -35,6 +35,9 @@ jobs:
           cache: 'yarn'
       - name: Install dependencies
         run: yarn install --frozen-lockfile
+      - name: Build with Next.js
+        run: yarn build # This will generate the static files in the 'out' directory
+                          # due to `output: 'export'` in next.config.js
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

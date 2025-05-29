@@ -45,15 +45,15 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   React.useEffect(() => {
-    if (authLoading) { // Only check authLoading, currentUser might be null briefly
-      setIsLoadingTransactions(true); // Keep loading transactions if auth state is still resolving
+    if (authLoading) { 
+      setIsLoadingTransactions(true); 
       return;
     }
 
     if (!currentUser) {
       setTransactions([]);
       setIsLoadingTransactions(false);
-      setError(null); // Clear any previous errors
+      setError(null); 
       return;
     }
     
@@ -193,7 +193,8 @@ export default function HomePage() {
     }
   }, [isMobile, editingTransaction, isModalOpen]);
 
-  if (authLoading || (isMobile === undefined && !currentUser)) { // Simplified loading for initial SSR/hydration
+  // Initial loading state for auth and mobile detection
+  if (authLoading || isMobile === undefined) { 
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
@@ -221,7 +222,6 @@ export default function HomePage() {
               <p className="text-lg text-muted-foreground mb-6">
                 Silakan login untuk mulai mengelola keuangan Anda dan mendapatkan wawasan finansial.
               </p>
-              {/* Login button is in the Header, which calls signInWithGoogle from AuthContext */}
             </CardContent>
           </Card>
         </main>
@@ -233,7 +233,7 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-        {isLoadingTransactions && !transactions.length && ( // Show loading only if no transactions yet
+        {isLoadingTransactions && !transactions.length && ( 
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="ml-4 text-lg text-foreground">Memuat transaksi...</p>
@@ -246,7 +246,7 @@ export default function HomePage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {(!isLoadingTransactions || transactions.length > 0) && !error && ( // Render content if not loading or if transactions exist
+        {(!isLoadingTransactions || transactions.length > 0) && !error && ( 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
@@ -266,7 +266,7 @@ export default function HomePage() {
                 </CardContent>
               </Card>
 
-              <Accordion type="single" collapsible className="w-full" defaultValue="item-kategori">
+              <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-kategori" className="border-none">
                   <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <AccordionTrigger className="hover:no-underline p-6 w-full rounded-t-lg">
@@ -344,7 +344,7 @@ export default function HomePage() {
                 </>
               )}
 
-              {(isMobile === false || isMobile === undefined) && ( 
+              {(isMobile === false) && ( 
                 <>
                   <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardHeader>
@@ -383,7 +383,7 @@ export default function HomePage() {
           </div>
         )}
         {/* Fallback if no transactions and not loading and no error (e.g. new user) */}
-        {!isLoadingTransactions && !error && transactions.length === 0 && (
+        {!isLoadingTransactions && !error && transactions.length === 0 && currentUser && (
            <Card className="shadow-lg mt-10 col-span-full">
             <CardHeader className="items-center">
               <CardTitle className="text-xl text-center">Mulai Lacak Keuangan Anda!</CardTitle>

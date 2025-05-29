@@ -65,6 +65,10 @@ export default function HomePage() {
 
     return () => unsubscribe(); // Cleanup listener on component unmount
   }, [toast]);
+  
+  const formatCurrencyForToast = (amount: number) => {
+    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+  };
 
   const addTransaction = async (transaction: Omit<Transaction, "id">) => {
     try {
@@ -74,7 +78,7 @@ export default function HomePage() {
       });
       toast({
         title: "Transaksi Ditambahkan",
-        description: `Transaksi untuk "${transaction.description}" telah ditambahkan.`,
+        description: `Transaksi sebesar ${formatCurrencyForToast(transaction.amount)} untuk "${transaction.description}" telah ditambahkan.`,
       });
       if (isMobile) {
         setIsModalOpen(false);
@@ -109,7 +113,7 @@ export default function HomePage() {
       setEditingTransaction(null);
       toast({
         title: "Transaksi Diperbarui",
-        description: `Transaksi untuk "${updatedTransaction.description}" telah diperbarui.`,
+        description: `Transaksi "${updatedTransaction.description}" telah berhasil diperbarui.`,
       });
       if (isMobile) {
         setIsModalOpen(false);
@@ -324,4 +328,3 @@ export default function HomePage() {
     </div>
   );
 }
-

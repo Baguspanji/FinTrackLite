@@ -1,13 +1,14 @@
+
 import type { Metadata } from 'next';
-// Updated imports for Geist fonts
 import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
+import { AuthProvider } from '@/contexts/AuthContext'; // Import AuthProvider
 
 export const metadata: Metadata = {
   title: 'FinTrack Lite',
-  description: 'Simple financial tracking with AI insights.',
+  description: 'Pelacakan keuangan sederhana dengan wawasan AI.',
 };
 
 export default function RootLayout({
@@ -16,14 +17,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      {/*
-        The GeistSans.variable and GeistMono.variable classes define CSS custom properties
-        (--font-geist-sans and --font-geist-mono) which are then used in globals.css.
-      */}
+    <html lang="id"> {/* Changed lang to id */}
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased`}>
-        {children}
-        <Toaster />
+        <AuthProvider> {/* Wrap children with AuthProvider */}
+          {children}
+          <Toaster />
+        </AuthProvider>
       </body>
     </html>
   );

@@ -7,10 +7,10 @@ import TransactionForm from "@/components/TransactionForm";
 import TransactionList from "@/components/TransactionList";
 import MonthlySummary from "@/components/MonthlySummary";
 import CategoryChart from "@/components/CategoryChart";
-import FinancialInsight from "@/components/FinancialInsight";
+import FinancialInsight from "@/components/FinancialInsight"; // Reactivated AI Insight
 import type { Transaction } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListChecks, LineChart, Receipt, Lightbulb, Edit3, PlusCircle, Loader2, AlertTriangle } from "lucide-react";
+import { ListChecks, LineChart, Receipt, Lightbulb, Edit3, PlusCircle, Loader2, AlertTriangle, UserCheck } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,25 +19,38 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { db } from "@/lib/firebase";
+import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, Timestamp } from "firebase/firestore";
 
 export default function HomePage() {
   const { toast } = useToast();
+  const { currentUser, loading: authLoading } = useAuth(); // Get user and auth loading state
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = React.useState<Date>(new Date());
   const [editingTransaction, setEditingTransaction] = React.useState<Transaction | null>(null);
-  const [isLoading, setIsLoading] = React.useState(true);
+  const [isLoadingTransactions, setIsLoadingTransactions] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
   const isMobile = useIsMobile();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   React.useEffect(() => {
-    setIsLoading(true);
-    const transactionsCol = collection(db, "transactions");
+    if (!currentUser || authLoading) {
+      // Don't fetch if no user or auth is still loading
+      // If user logs out, clear transactions
+      if (!currentUser && !authLoading) {
+        setTransactions([]);
+        setIsLoadingTransactions(false);
+      }
+      return;
+    }
+
+    setIsLoadingTransactions(true);
+    const transactionsColPath = `users/${currentUser.uid}/transactions`;
+    const transactionsCol = collection(db, transactionsColPath);
     const q = query(transactionsCol, orderBy("date", "desc"));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -46,16 +59,16 @@ export default function HomePage() {
         return {
           id: doc.id,
           ...data,
-          date: (data.date as Timestamp).toDate(), // Convert Firestore Timestamp to JS Date
+          date: (data.date as Timestamp).toDate(),
         } as Transaction;
       });
       setTransactions(fetchedTransactions);
-      setIsLoading(false);
+      setIsLoadingTransactions(false);
       setError(null);
     }, (err) => {
       console.error("Error fetching transactions:", err);
       setError("Gagal memuat transaksi. Silakan coba lagi nanti.");
-      setIsLoading(false);
+      setIsLoadingTransactions(false);
       toast({
         title: "Error",
         description: "Tidak dapat mengambil data transaksi.",
@@ -63,18 +76,23 @@ export default function HomePage() {
       });
     });
 
-    return () => unsubscribe(); // Cleanup listener on component unmount
-  }, [toast]);
+    return () => unsubscribe();
+  }, [currentUser, authLoading, toast]);
   
   const formatCurrencyForToast = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
   const addTransaction = async (transaction: Omit<Transaction, "id">) => {
+    if (!currentUser) {
+      toast({ title: "Error", description: "Anda harus login untuk menambahkan transaksi.", variant: "destructive" });
+      return;
+    }
     try {
-      await addDoc(collection(db, "transactions"), {
+      const transactionsColPath = `users/${currentUser.uid}/transactions`;
+      await addDoc(collection(db, transactionsColPath), {
         ...transaction,
-        date: Timestamp.fromDate(new Date(transaction.date)), // Convert JS Date to Timestamp
+        date: Timestamp.fromDate(new Date(transaction.date)),
       });
       
       toast({
@@ -82,7 +100,6 @@ export default function HomePage() {
         description: `Transaksi sebesar ${formatCurrencyForToast(transaction.amount)} untuk "${transaction.description}" telah ditambahkan.`,
       });
       
-      // Close modal after successful transaction
       if (isMobile) {
         setIsModalOpen(false);
       }
@@ -104,17 +121,16 @@ export default function HomePage() {
   };
 
   const handleUpdateTransaction = async (updatedTransaction: Transaction) => {
-    if (!updatedTransaction.id) return;
+    if (!updatedTransaction.id || !currentUser) return;
     const { id, ...dataToUpdate } = updatedTransaction;
-    const transactionDocRef = doc(db, "transactions", id);
+    const transactionDocRef = doc(db, `users/${currentUser.uid}/transactions`, id);
 
     try {
       await updateDoc(transactionDocRef, {
         ...dataToUpdate,
-        date: Timestamp.fromDate(new Date(dataToUpdate.date)), // Convert JS Date to Timestamp
+        date: Timestamp.fromDate(new Date(dataToUpdate.date)),
       });
       
-      // Close modal first on mobile to prevent useEffect interference
       if (isMobile) {
         setIsModalOpen(false);
       }
@@ -135,8 +151,8 @@ export default function HomePage() {
   };
   
   const handleDeleteTransaction = async (transactionId: string) => {
-    if (!transactionId) return;
-    const transactionDocRef = doc(db, "transactions", transactionId);
+    if (!transactionId || !currentUser) return;
+    const transactionDocRef = doc(db, `users/${currentUser.uid}/transactions`, transactionId);
     try {
       await deleteDoc(transactionDocRef);
       toast({
@@ -154,7 +170,6 @@ export default function HomePage() {
   };
 
   const handleCancelEdit = () => {
-    // Close modal first on mobile to prevent useEffect interference
     if (isMobile) {
       setIsModalOpen(false);
     }
@@ -162,23 +177,45 @@ export default function HomePage() {
   };
 
   React.useEffect(() => {
-    // Only auto-open modal when editing starts on mobile
     if (isMobile && editingTransaction && !isModalOpen) {
       setIsModalOpen(true);
     }
-    // Don't auto-close modal when switching to desktop as it might interrupt user flow
-    // User can manually close if needed
   }, [isMobile, editingTransaction, isModalOpen]);
 
 
-  if (isMobile === undefined && isLoading) {
+  if (authLoading || (isMobile === undefined && isLoadingTransactions && !currentUser)) {
     return (
       <div className="flex flex-col min-h-screen bg-background text-foreground">
         <Header />
         <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="ml-4 text-lg">Memuat data pengguna...</p>
           </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!currentUser) {
+    return (
+      <div className="flex flex-col min-h-screen bg-background text-foreground">
+        <Header />
+        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
+          <Card className="shadow-lg mt-10">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-center text-2xl">
+                <UserCheck className="mr-3 h-8 w-8 text-primary" />
+                Selamat Datang di FinTrack Lite
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <p className="text-lg text-muted-foreground mb-6">
+                Silakan login untuk mulai mengelola keuangan Anda.
+              </p>
+              {/* Login button is in the Header */}
+            </CardContent>
+          </Card>
         </main>
       </div>
     );
@@ -188,18 +225,19 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Header />
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-        {isLoading && (
+        {isLoadingTransactions && (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="ml-4 text-lg">Memuat transaksi...</p>
           </div>
         )}
-        {error && !isLoading && (
+        {error && !isLoadingTransactions && (
           <Alert variant="destructive" className="mb-6">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {!isLoading && !error && (
+        {!isLoadingTransactions && !error && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
@@ -256,14 +294,14 @@ export default function HomePage() {
               {isMobile === true && (
                 <>
                   <Button
-                    className="fixed flex bottom-6 right-6 z-50 px-4 py-2 rounded-lg shadow-lg bg-primary hover:bg-primary/90 text-white"
+                    className="fixed flex items-center bottom-6 right-6 z-50 px-4 py-3 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-base"
                     onClick={() => {
                       setEditingTransaction(null); 
                       setIsModalOpen(true);
                     }}
                     aria-label="Tambah Transaksi Baru"
                   >
-                    <PlusCircle className="h-6 w-6" />
+                    <PlusCircle className="mr-2 h-5 w-5" />
                     <span>Tambah</span>
                   </Button>
                   <Dialog open={isModalOpen} onOpenChange={(open) => {
@@ -331,4 +369,3 @@ export default function HomePage() {
     </div>
   );
 }
-

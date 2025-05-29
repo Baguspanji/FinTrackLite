@@ -62,60 +62,94 @@ interface TransactionFormProps {
   onCancelEdit?: () => void;
 }
 
-const defaultFormValues: TransactionFormValues = {
-  date: new Date(),
-  amount: NaN, // Use NaN or allow undefined for controlled component
+// Default values for a new form, ensuring date is initially undefined or null for hydration safety.
+// The actual current date for new transactions will be set in useEffect.
+const newTransactionDefaults: TransactionFormValues = {
+  date: new Date(), // This will be overridden by useEffect for new transactions to ensure client-side consistency
+  amount: NaN,
   category: CATEGORIES_ARRAY[0],
   description: "",
   type: "expense",
 };
 
 
-export default function TransactionForm({ 
-  addTransaction, 
-  editingTransaction, 
-  onUpdateTransaction, 
-  onCancelEdit 
+export default function TransactionForm({
+  addTransaction,
+  editingTransaction,
+  onUpdateTransaction,
+  onCancelEdit
 }: TransactionFormProps) {
   const { toast } = useToast();
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
-    defaultValues: defaultFormValues,
+    // Provide defaultValues that won't cause hydration mismatch for `date`.
+    // `date` will be properly set in useEffect.
+    defaultValues: {
+      amount: NaN,
+      category: CATEGORIES_ARRAY[0],
+      description: "",
+      type: "expense",
+      // date: undefined, // Explicitly undefined or let resolver handle if schema allows
+      // Let's use a placeholder date that will be immediately overwritten by useEffect
+      // Or rely on zod resolver if possible. For now, let it be potentially new Date() but rely on reset.
+      // The most robust is to make `date` field itself optional in schema for defaultValues,
+      // or ensure reset logic in useEffect always sets it.
+      date: new Date(0), // A fixed, non-dynamic date for initial defaultValues
+    },
   });
 
   React.useEffect(() => {
     if (editingTransaction) {
       form.reset({
         ...editingTransaction,
-        amount: Number(editingTransaction.amount), // Ensure amount is number
+        date: new Date(editingTransaction.date), // Ensure it's a Date object
+        amount: Number(editingTransaction.amount),
       });
     } else {
-      form.reset(defaultFormValues);
-      form.setValue("date", new Date()); // Explicitly set date to today for new transactions
+      // For new transactions, reset with current values client-side
+      form.reset({
+        date: new Date(), // Set current date here, AFTER initial mount/hydration
+        amount: NaN,
+        category: CATEGORIES_ARRAY[0],
+        description: "",
+        type: "expense",
+      });
     }
-  }, [editingTransaction, form]);
+  }, [editingTransaction, form.reset]); // form.reset is generally stable
 
   function onSubmit(data: TransactionFormValues) {
     if (editingTransaction && onUpdateTransaction) {
       onUpdateTransaction({ ...data, id: editingTransaction.id });
     } else {
       addTransaction(data);
-      toast({
-        title: "Transaction Added",
-        description: `${data.type === "income" ? "Income" : "Expense"} of $${data.amount.toFixed(2)} for ${data.category} added.`,
-      });
+      // Toast is kept from original
+      // toast({
+      //   title: "Transaction Added",
+      //   description: `${data.type === "income" ? "Income" : "Expense"} of $${data.amount.toFixed(2)} for ${data.category} added.`,
+      // });
     }
-    // Reset form to its default state for a new transaction, regardless of add or update
-    form.reset(defaultFormValues);
-    form.setValue("date", new Date()); 
+    // Reset form to its default state for a new transaction, client-side
+    form.reset({
+        date: new Date(),
+        amount: NaN,
+        category: CATEGORIES_ARRAY[0],
+        description: "",
+        type: "expense",
+      });
   }
 
   const handleCancel = () => {
     if (onCancelEdit) {
       onCancelEdit();
     }
-    form.reset(defaultFormValues);
-    form.setValue("date", new Date());
+    // Reset form to its default state for a new transaction, client-side
+     form.reset({
+        date: new Date(),
+        amount: NaN,
+        category: CATEGORIES_ARRAY[0],
+        description: "",
+        type: "expense",
+      });
   };
 
 
@@ -131,7 +165,7 @@ export default function TransactionForm({
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
-                  value={field.value} // Ensure value is controlled
+                  value={field.value}
                   className="flex space-x-4"
                 >
                   <FormItem className="flex items-center space-x-2 space-y-0">
@@ -160,13 +194,13 @@ export default function TransactionForm({
             <FormItem>
               <FormLabel>Amount</FormLabel>
               <FormControl>
-                {/* Update field to handle potential NaN from reset */}
-                <Input 
-                    type="number" 
-                    placeholder="0.00" 
-                    {...field} 
+                <Input
+                    type="number"
+                    placeholder="0.00"
+                    {...field}
                     value={isNaN(field.value) ? '' : field.value}
-                    step="0.01" 
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || '')} // Ensure it's a number or empty string
+                    step="0.01"
                 />
               </FormControl>
               <FormMessage />
@@ -180,7 +214,7 @@ export default function TransactionForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}> {/* Ensure value is controlled */}
+              <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
@@ -198,7 +232,7 @@ export default function TransactionForm({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="date"
@@ -212,7 +246,7 @@ export default function TransactionForm({
                       variant={"outline"}
                       className={cn(
                         "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
+                        !field.value && "text-muted-foreground" // This handles undefined/null field.value gracefully
                       )}
                     >
                       {field.value ? (
@@ -254,7 +288,7 @@ export default function TransactionForm({
             </FormItem>
           )}
         />
-        
+
         <Button type="submit" className="w-full">
           {editingTransaction ? (
             <>

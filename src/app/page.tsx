@@ -7,7 +7,7 @@ import TransactionForm from "@/components/TransactionForm";
 import TransactionList from "@/components/TransactionList";
 import MonthlySummary from "@/components/MonthlySummary";
 import CategoryChart from "@/components/CategoryChart";
-import FinancialInsight from "@/components/FinancialInsight";
+// import FinancialInsight from "@/components/FinancialInsight"; // Temporarily commented out
 import type { Transaction } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListChecks, LineChart, Receipt, Lightbulb, Edit3, PlusCircle, Loader2, AlertTriangle } from "lucide-react";
@@ -155,19 +155,15 @@ export default function HomePage() {
   };
 
   React.useEffect(() => {
-    // Logic to open modal when editingTransaction is set on mobile
     if (isMobile && editingTransaction && !isModalOpen) {
       setIsModalOpen(true);
     }
-    // Close modal if not mobile and modal is open (e.g. screen resize)
-    // This might need more nuanced handling depending on desired UX for screen resize
     if (isMobile === false && isModalOpen) {
-        // setIsModalOpen(false); // Or, decide if it should stay open
+        // setIsModalOpen(false); 
     }
   }, [isMobile, editingTransaction, isModalOpen]);
 
 
-  // Consistent initial rendering for SSR/hydration, content decided after 'isMobile' is determined client-side
   if (isMobile === undefined && isLoading) {
     return (
       <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -256,7 +252,7 @@ export default function HomePage() {
                     className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
                     size="icon"
                     onClick={() => {
-                      setEditingTransaction(null); // Ensure we're adding a new transaction
+                      setEditingTransaction(null); 
                       setIsModalOpen(true);
                     }}
                     aria-label="Tambah Transaksi Baru"
@@ -266,8 +262,8 @@ export default function HomePage() {
                   </Button>
                   <Dialog open={isModalOpen} onOpenChange={(open) => {
                     setIsModalOpen(open);
-                    if (!open) { // If dialog is closed (either by X, overlay click, or cancel button)
-                      setEditingTransaction(null); // Clear editing state
+                    if (!open) { 
+                      setEditingTransaction(null); 
                     }
                   }}>
                     <DialogContent className="p-4 sm:max-w-md">
@@ -279,7 +275,7 @@ export default function HomePage() {
                           addTransaction={addTransaction}
                           editingTransaction={editingTransaction}
                           onUpdateTransaction={handleUpdateTransaction}
-                          onCancelEdit={handleCancelEdit} // This will also close modal via onOpenChange
+                          onCancelEdit={handleCancelEdit} 
                         />
                       </div>
                     </DialogContent>
@@ -287,7 +283,7 @@ export default function HomePage() {
                 </>
               )}
 
-              {(isMobile === false || isMobile === undefined) && ( // Show on desktop or when isMobile is not determined
+              {(isMobile === false || isMobile === undefined) && ( 
                 <>
                   <Card className="shadow-lg">
                     <CardHeader>
@@ -305,6 +301,8 @@ export default function HomePage() {
                       />
                     </CardContent>
                   </Card>
+                  {/* 
+                  // Temporarily commented out FinancialInsight for static export
                   <Card className="shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center">
@@ -318,7 +316,8 @@ export default function HomePage() {
                         selectedMonth={selectedMonth}
                       />
                     </CardContent>
-                  </Card>
+                  </Card> 
+                  */}
                 </>
               )}
             </div>

@@ -1,12 +1,18 @@
 
 import type {NextConfig} from 'next';
 
+// Check if we're in production/deployment mode
+const isProduction = process.env.NODE_ENV === 'production';
+const isGitHubPages = process.env.GITHUB_ACTIONS === 'true';
+
 const nextConfig: NextConfig = {
-  // output: 'export', // Commented out: Server Actions require a Node.js server environment.
-  // IMPORTANT: basePath was for GitHub Pages. Remove or adjust if deploying elsewhere.
-  // basePath: '/FinTrackLite', 
+  // Only use export output for GitHub Pages deployment
+  ...(isGitHubPages && { output: 'export' }),
+  // Only use basePath for GitHub Pages deployment
+  ...(isGitHubPages && { basePath: '/FinTrackLite' }), 
   images: {
-    // unoptimized: true, // Commented out: No longer needed if not doing static export.
+    // Enable unoptimized images for static export (GitHub Pages)
+    ...(isGitHubPages && { unoptimized: true }),
     remotePatterns: [
       {
         protocol: 'https',
@@ -16,7 +22,8 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  // trailingSlash: true, // Commented out: Recommended for GitHub Pages, may not be needed otherwise.
+  // Enable trailing slash for GitHub Pages
+  ...(isGitHubPages && { trailingSlash: true }),
   typescript: {
     ignoreBuildErrors: false,
   },

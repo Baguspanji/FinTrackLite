@@ -67,7 +67,12 @@ export default function RootLayout({
       <head>
         {/* Preconnect to Google Fonts if you were using them directly, not needed for Geist */}
         {/* <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" /> */}
-        <link rel="apple-touch-icon" sizes="180x180" data-ai-hint="logo finance" href="https://placehold.co/180x180.png" />
+        <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <meta name="apple-mobile-web-app-title" content="FinTrack" />
+        <link rel="manifest" href="/manifest.json" />
         {/* Add other icon sizes for apple-touch-icon if needed */}
       </head>
       <body className={`${GeistSans.variable} ${GeistMono.variable} antialiased bg-background text-foreground transition-colors duration-300`}>

@@ -4,7 +4,7 @@ import type {NextConfig} from 'next';
 // Check if we're in production/deployment mode
 const isProduction = process.env.NODE_ENV === 'production';
 const isGitHubPages = process.env.GITHUB_ACTIONS === 'true';
-// @ts-ignore next-pwa is not typed, or has conflicting types with newer Next.js/TypeScript
+
 const withPWA = require('next-pwa')({
   dest: 'public',
   register: true,

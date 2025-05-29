@@ -66,41 +66,7 @@ export default function HomePage() {
       <Header />
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Column / Top Section on mobile */}
-          <div className="lg:col-span-1 space-y-6">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  {editingTransaction ? <Edit3 className="mr-2 h-5 w-5 text-primary" /> : <Receipt className="mr-2 h-5 w-5 text-primary" />}
-                  {editingTransaction ? "Edit Transaction" : "Add Transaction"}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TransactionForm
-                  addTransaction={addTransaction}
-                  editingTransaction={editingTransaction}
-                  onUpdateTransaction={handleUpdateTransaction}
-                  onCancelEdit={handleCancelEdit}
-                />
-              </CardContent>
-            </Card>
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <Lightbulb className="mr-2 h-5 w-5 text-primary" />
-                  AI Financial Insight
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <FinancialInsight
-                  transactions={transactions}
-                  selectedMonth={selectedMonth}
-                />
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Right Column / Bottom Section on mobile */}
+          {/* Left Column (formerly Right) / Top Section on mobile */}
           <div className="lg:col-span-2 space-y-6">
             <Card className="shadow-lg">
               <CardHeader>
@@ -144,6 +110,40 @@ export default function HomePage() {
                 <TransactionList 
                   transactions={transactions}
                   onEditTransaction={handleEditTransaction} 
+                />
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column (formerly Left) / Bottom Section on mobile */}
+          <div className="lg:col-span-1 space-y-6">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  {editingTransaction ? <Edit3 className="mr-2 h-5 w-5 text-primary" /> : <Receipt className="mr-2 h-5 w-5 text-primary" />}
+                  {editingTransaction ? "Edit Transaction" : "Add Transaction"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TransactionForm
+                  addTransaction={addTransaction}
+                  editingTransaction={editingTransaction}
+                  onUpdateTransaction={handleUpdateTransaction}
+                  onCancelEdit={handleCancelEdit}
+                />
+              </CardContent>
+            </Card>
+            <Card className="shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Lightbulb className="mr-2 h-5 w-5 text-primary" />
+                  AI Financial Insight
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FinancialInsight
+                  transactions={transactions}
+                  selectedMonth={selectedMonth}
                 />
               </CardContent>
             </Card>

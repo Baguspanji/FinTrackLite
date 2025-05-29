@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -9,9 +10,12 @@ import CategoryChart from "@/components/CategoryChart";
 import FinancialInsight from "@/components/FinancialInsight";
 import type { Transaction } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ListChecks, LineChart, Receipt, Lightbulb } from "lucide-react";
+import { ListChecks, LineChart, Receipt, Lightbulb, Edit3 } from "lucide-react"; // Edit3 can be an alternative icon if needed
+import { useToast } from "@/hooks/use-toast";
+
 
 export default function HomePage() {
+  const { toast } = useToast();
   const [transactions, setTransactions] = React.useState<Transaction[]>(() => {
     if (typeof window !== 'undefined') {
       const savedTransactions = localStorage.getItem("transactions");
@@ -23,6 +27,7 @@ export default function HomePage() {
     return [];
   });
   const [selectedMonth, setSelectedMonth] = React.useState<Date>(new Date());
+  const [editingTransaction, setEditingTransaction] = React.useState<Transaction | null>(null);
 
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -37,6 +42,25 @@ export default function HomePage() {
     ]);
   };
 
+  const handleEditTransaction = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+  };
+
+  const handleUpdateTransaction = (updatedTransaction: Transaction) => {
+    setTransactions((prev) =>
+      prev.map((t) => (t.id === updatedTransaction.id ? updatedTransaction : t))
+    );
+    setEditingTransaction(null);
+    toast({
+      title: "Transaction Updated",
+      description: `Transaction for "${updatedTransaction.description}" has been updated.`,
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTransaction(null);
+  };
+
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
       <Header />
@@ -47,12 +71,17 @@ export default function HomePage() {
             <Card className="shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Receipt className="mr-2 h-5 w-5 text-primary" />
-                  Add Transaction
+                  {editingTransaction ? <Edit3 className="mr-2 h-5 w-5 text-primary" /> : <Receipt className="mr-2 h-5 w-5 text-primary" />}
+                  {editingTransaction ? "Edit Transaction" : "Add Transaction"}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <TransactionForm addTransaction={addTransaction} />
+                <TransactionForm
+                  addTransaction={addTransaction}
+                  editingTransaction={editingTransaction}
+                  onUpdateTransaction={handleUpdateTransaction}
+                  onCancelEdit={handleCancelEdit}
+                />
               </CardContent>
             </Card>
             <Card className="shadow-lg">
@@ -112,7 +141,10 @@ export default function HomePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <TransactionList transactions={transactions} />
+                <TransactionList 
+                  transactions={transactions}
+                  onEditTransaction={handleEditTransaction} 
+                />
               </CardContent>
             </Card>
           </div>

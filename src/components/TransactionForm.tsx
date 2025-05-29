@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -5,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { format } from "date-fns";
-import { CalendarIcon, PlusCircle } from "lucide-react";
+import { CalendarIcon, PlusCircle, Save, XCircle } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -56,30 +57,67 @@ type TransactionFormValues = z.infer<typeof transactionFormSchema>;
 
 interface TransactionFormProps {
   addTransaction: (transaction: Omit<Transaction, "id">) => void;
+  editingTransaction?: Transaction | null;
+  onUpdateTransaction?: (transaction: Transaction) => void;
+  onCancelEdit?: () => void;
 }
 
-export default function TransactionForm({ addTransaction }: TransactionFormProps) {
+const defaultFormValues: TransactionFormValues = {
+  date: new Date(),
+  amount: NaN, // Use NaN or allow undefined for controlled component
+  category: CATEGORIES_ARRAY[0],
+  description: "",
+  type: "expense",
+};
+
+
+export default function TransactionForm({ 
+  addTransaction, 
+  editingTransaction, 
+  onUpdateTransaction, 
+  onCancelEdit 
+}: TransactionFormProps) {
   const { toast } = useToast();
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
-    defaultValues: {
-      date: new Date(),
-      amount: undefined,
-      category: CATEGORIES_ARRAY[0],
-      description: "",
-      type: "expense",
-    },
+    defaultValues: defaultFormValues,
   });
 
+  React.useEffect(() => {
+    if (editingTransaction) {
+      form.reset({
+        ...editingTransaction,
+        amount: Number(editingTransaction.amount), // Ensure amount is number
+      });
+    } else {
+      form.reset(defaultFormValues);
+      form.setValue("date", new Date()); // Explicitly set date to today for new transactions
+    }
+  }, [editingTransaction, form]);
+
   function onSubmit(data: TransactionFormValues) {
-    addTransaction(data);
-    toast({
-      title: "Transaction Added",
-      description: `${data.type === "income" ? "Income" : "Expense"} of ${data.amount} for ${data.category} added.`,
-    });
-    form.reset();
-     form.setValue("date", new Date()); // Reset date to today after submission
+    if (editingTransaction && onUpdateTransaction) {
+      onUpdateTransaction({ ...data, id: editingTransaction.id });
+    } else {
+      addTransaction(data);
+      toast({
+        title: "Transaction Added",
+        description: `${data.type === "income" ? "Income" : "Expense"} of $${data.amount.toFixed(2)} for ${data.category} added.`,
+      });
+    }
+    // Reset form to its default state for a new transaction, regardless of add or update
+    form.reset(defaultFormValues);
+    form.setValue("date", new Date()); 
   }
+
+  const handleCancel = () => {
+    if (onCancelEdit) {
+      onCancelEdit();
+    }
+    form.reset(defaultFormValues);
+    form.setValue("date", new Date());
+  };
+
 
   return (
     <Form {...form}>
@@ -93,7 +131,7 @@ export default function TransactionForm({ addTransaction }: TransactionFormProps
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value} // Ensure value is controlled
                   className="flex space-x-4"
                 >
                   <FormItem className="flex items-center space-x-2 space-y-0">
@@ -122,7 +160,14 @@ export default function TransactionForm({ addTransaction }: TransactionFormProps
             <FormItem>
               <FormLabel>Amount</FormLabel>
               <FormControl>
-                <Input type="number" placeholder="0.00" {...field} step="0.01" />
+                {/* Update field to handle potential NaN from reset */}
+                <Input 
+                    type="number" 
+                    placeholder="0.00" 
+                    {...field} 
+                    value={isNaN(field.value) ? '' : field.value}
+                    step="0.01" 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -135,7 +180,7 @@ export default function TransactionForm({ addTransaction }: TransactionFormProps
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <Select onValueChange={field.onChange} value={field.value}> {/* Ensure value is controlled */}
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Select a category" />
@@ -211,8 +256,21 @@ export default function TransactionForm({ addTransaction }: TransactionFormProps
         />
         
         <Button type="submit" className="w-full">
-          <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
+          {editingTransaction ? (
+            <>
+              <Save className="mr-2 h-4 w-4" /> Update Transaction
+            </>
+          ) : (
+            <>
+              <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
+            </>
+          )}
         </Button>
+        {editingTransaction && (
+          <Button type="button" variant="outline" onClick={handleCancel} className="w-full mt-2">
+            <XCircle className="mr-2 h-4 w-4" /> Cancel Edit
+          </Button>
+        )}
       </form>
     </Form>
   );

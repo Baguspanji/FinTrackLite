@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Transaction } from "@/lib/types";
@@ -13,12 +14,15 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
 
 interface TransactionListProps {
   transactions: Transaction[];
+  onEditTransaction: (transaction: Transaction) => void;
 }
 
-export default function TransactionList({ transactions }: TransactionListProps) {
+export default function TransactionList({ transactions, onEditTransaction }: TransactionListProps) {
   if (transactions.length === 0) {
     return <p className="text-muted-foreground text-center py-8">No transactions yet. Add one to get started!</p>;
   }
@@ -34,6 +38,7 @@ export default function TransactionList({ transactions }: TransactionListProps) 
             <TableHead>Description</TableHead>
             <TableHead>Category</TableHead>
             <TableHead className="text-right">Amount</TableHead>
+            <TableHead className="text-right w-[80px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -64,6 +69,17 @@ export default function TransactionList({ transactions }: TransactionListProps) 
                     {transaction.type === "income" ? "+" : "-"}
                     {transaction.amount.toFixed(2)}
                   </div>
+                </TableCell>
+                <TableCell className="text-right">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onEditTransaction(transaction)}
+                    aria-label="Edit transaction"
+                    className="h-8 w-8"
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             );

@@ -7,7 +7,7 @@ import TransactionForm from "@/components/TransactionForm";
 import TransactionList from "@/components/TransactionList";
 import MonthlySummary from "@/components/MonthlySummary";
 import CategoryChart from "@/components/CategoryChart";
-import FinancialInsight from "@/components/FinancialInsight"; // Reactivated AI Insight
+import FinancialInsight from "@/components/FinancialInsight";
 import type { Transaction } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListChecks, LineChart, Receipt, Lightbulb, Edit3, PlusCircle, Loader2, AlertTriangle, UserCheck } from "lucide-react";
@@ -28,12 +28,12 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { db } from "@/lib/firebase";
-import { useAuth } from "@/contexts/AuthContext"; // Import useAuth
+import { useAuth } from "@/contexts/AuthContext";
 import { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, Timestamp } from "firebase/firestore";
 
 export default function HomePage() {
   const { toast } = useToast();
-  const { currentUser, loading: authLoading } = useAuth(); // Get user and auth loading state
+  const { currentUser, loading: authLoading } = useAuth();
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = React.useState<Date>(new Date());
   const [editingTransaction, setEditingTransaction] = React.useState<Transaction | null>(null);
@@ -45,8 +45,6 @@ export default function HomePage() {
 
   React.useEffect(() => {
     if (!currentUser || authLoading) {
-      // Don't fetch if no user or auth is still loading
-      // If user logs out, clear transactions
       if (!currentUser && !authLoading) {
         setTransactions([]);
         setIsLoadingTransactions(false);
@@ -263,7 +261,7 @@ export default function HomePage() {
                 </CardContent>
               </Card>
 
-              <Accordion type="single" collapsible defaultValue="item-kategori" className="w-full">
+              <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-kategori" className="border-none">
                   <Card className="shadow-lg">
                     <AccordionTrigger className="hover:no-underline p-6 w-full">

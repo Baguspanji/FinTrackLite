@@ -145,16 +145,21 @@ export default function HomePage() {
             </Card>
           </div>
 
-          {/* Right Column / Mobile Transaction Trigger */}
+          {/* Right Column (Desktop) / Modal Trigger (Mobile) */}
           <div className="lg:col-span-1 space-y-6">
-            {/* Mobile View: Button to open modal */}
+            {/* Mobile View: FAB to open modal */}
             {isMobile === true && (
               <>
-                <Button className="w-full" variant="outline" onClick={() => {
-                  setEditingTransaction(null); // Ensure form is for new transaction
-                  setIsModalOpen(true);
-                }}>
-                  <PlusCircle className="mr-2 h-5 w-5" /> Add New Transaction
+                <Button
+                  className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
+                  size="icon"
+                  onClick={() => {
+                    setEditingTransaction(null); // Ensure form is for new transaction
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <PlusCircle className="h-7 w-7" />
+                  <span className="sr-only">Add New Transaction</span>
                 </Button>
                 <Dialog open={isModalOpen} onOpenChange={(open) => {
                   setIsModalOpen(open);
@@ -177,7 +182,7 @@ export default function HomePage() {
                     </div>
                   </DialogContent>
                 </Dialog>
-                {/* AI Insight card is hidden on mobile in this setup */}
+                {/* AI Insight card is typically not shown with a FAB setup or placed elsewhere if needed */}
               </>
             )}
 

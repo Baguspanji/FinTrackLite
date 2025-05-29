@@ -115,7 +115,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                       <div
                         className={`font-semibold text-sm flex items-center ${
                           transaction.type === "income"
-                            ? "text-accent-foreground"
+                            ? "text-accent" // Changed from text-accent-foreground
                             : "text-destructive"
                         }`}
                       >
@@ -168,7 +168,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                     <TableCell
                       className={`text-right font-semibold ${
                         transaction.type === "income"
-                          ? "text-accent-foreground"
+                          ? "text-accent" // Changed from text-accent-foreground
                           : "text-destructive"
                       }`}
                     >
@@ -230,4 +230,3 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
     </AlertDialog>
   );
 }
-

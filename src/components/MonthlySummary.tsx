@@ -67,7 +67,7 @@ export default function MonthlySummary({
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-accent-foreground">
+            <div className="text-2xl font-bold text-accent"> {/* Changed from text-accent-foreground */}
               {formatCurrency(totalIncome)}
             </div>
           </CardContent>
@@ -98,4 +98,3 @@ export default function MonthlySummary({
     </div>
   );
 }
-

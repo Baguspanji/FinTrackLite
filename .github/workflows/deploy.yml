@@ -32,11 +32,11 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20" # Specify your Node.js version
-          cache: 'npm'
+          cache: 'yarn'
       - name: Install dependencies
-        run: npm ci
+        run: yarn install --frozen-lockfile
       - name: Build with Next.js
-        run: npm run build # This will generate the static files in the 'out' directory
+        run: yarn build # This will generate the static files in the 'out' directory
                           # due to `output: 'export'` in next.config.js
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

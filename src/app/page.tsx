@@ -19,6 +19,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { db } from "@/lib/firebase";
@@ -257,20 +263,26 @@ export default function HomePage() {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <LineChart className="mr-2 h-5 w-5 text-primary" />
-                    Kategori Pengeluaran
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CategoryChart
-                    transactions={transactions}
-                    selectedMonth={selectedMonth}
-                  />
-                </CardContent>
-              </Card>
+              <Accordion type="single" collapsible defaultValue="item-kategori" className="w-full">
+                <AccordionItem value="item-kategori" className="border-none">
+                  <Card className="shadow-lg">
+                    <AccordionTrigger className="hover:no-underline p-6 w-full">
+                      <CardTitle className="flex items-center">
+                        <LineChart className="mr-2 h-5 w-5 text-primary" />
+                        Kategori Pengeluaran
+                      </CardTitle>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <CardContent> {/* Has p-6 pt-0 by default */}
+                        <CategoryChart
+                          transactions={transactions}
+                          selectedMonth={selectedMonth}
+                        />
+                      </CardContent>
+                    </AccordionContent>
+                  </Card>
+                </AccordionItem>
+              </Accordion>
               
               <Card className="shadow-lg">
                 <CardHeader>

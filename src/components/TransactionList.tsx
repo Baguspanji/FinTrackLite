@@ -93,7 +93,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                   <TableCell>{transaction.description}</TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="flex items-center w-fit">
-                      <Icon className="mr-1 h-3 w-3" />
+                      <Icon className="mr-1 h-3 w-3" iconNode={[]} />
                       {getCategoryIndonesianName(transaction.category)}
                     </Badge>
                   </TableCell>
@@ -105,7 +105,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                     }`}
                   >
                     <div className="flex items-center justify-end">
-                      <TypeIcon className="mr-1 h-4 w-4" />
+                      <TypeIcon className="mr-1 h-4 w-4" iconNode={[]} />
                       {transaction.type === "income" ? "+" : "-"}
                       {formatCurrency(transaction.amount)}
                     </div>

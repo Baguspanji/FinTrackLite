@@ -70,9 +70,12 @@ export default function CategoryChart({ transactions, selectedMonth }: CategoryC
   }
   
   const chartConfig = Object.fromEntries(
-      chartData.map(item => [item.originalName, { label: item.name, color: item.fill, icon: item.icon }])
+      chartData.map(item => [item.originalName, { 
+        label: item.name, 
+        color: item.fill, 
+        icon: item.icon && typeof item.icon !== 'string' ? item.icon : undefined 
+      }])
   );
-
 
   return (
     <ChartContainer config={chartConfig} className="min-h-[300px] w-full">

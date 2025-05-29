@@ -14,7 +14,7 @@ import {
   Icon as LucideIcon,
 } from 'lucide-react';
 
-export const CategoryIcons: Record<Category, LucideIcon> = {
+export const CategoryIcons: Record<Category, typeof LucideIcon> = {
   Food: Utensils,
   Transport: Car,
   Utilities: Lightbulb,
@@ -26,11 +26,11 @@ export const CategoryIcons: Record<Category, LucideIcon> = {
   Other: MoreHorizontal,
 };
 
-export const TransactionTypeIcons: Record<'income' | 'expense', LucideIcon> = {
+export const TransactionTypeIcons: Record<'income' | 'expense', typeof LucideIcon> = {
   income: TrendingUp,
   expense: TrendingDown,
 };
 
-export const getCategoryIcon = (category: Category): LucideIcon => {
+export const getCategoryIcon = (category: Category): typeof LucideIcon => {
   return CategoryIcons[category] || MoreHorizontal;
 };

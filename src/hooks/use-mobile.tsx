@@ -1,19 +1,25 @@
+
 import * as React from "react"
 
-const MOBILE_BREAKPOINT = 768
+const MOBILE_BREAKPOINT = 768 // Corresponds to Tailwind's 'md' breakpoint
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+export function useIsMobile(): boolean | undefined {
+  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
 
   React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
+    function handleResize() {
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
     }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
 
-  return !!isMobile
+    // Check if window is defined (i.e., we are on the client-side)
+    if (typeof window !== 'undefined') {
+      handleResize(); // Set the initial value
+      window.addEventListener("resize", handleResize);
+      return () => window.removeEventListener("resize", handleResize);
+    }
+    // Return undefined or a default value for SSR if needed,
+    // but undefined is fine as components will handle it.
+  }, []);
+
+  return isMobile;
 }

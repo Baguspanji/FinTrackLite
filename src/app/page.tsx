@@ -76,10 +76,13 @@ export default function HomePage() {
         ...transaction,
         date: Timestamp.fromDate(new Date(transaction.date)), // Convert JS Date to Timestamp
       });
+      
       toast({
         title: "Transaksi Ditambahkan",
         description: `Transaksi sebesar ${formatCurrencyForToast(transaction.amount)} untuk "${transaction.description}" telah ditambahkan.`,
       });
+      
+      // Close modal after successful transaction
       if (isMobile) {
         setIsModalOpen(false);
       }
@@ -110,14 +113,17 @@ export default function HomePage() {
         ...dataToUpdate,
         date: Timestamp.fromDate(new Date(dataToUpdate.date)), // Convert JS Date to Timestamp
       });
+      
+      // Close modal first on mobile to prevent useEffect interference
+      if (isMobile) {
+        setIsModalOpen(false);
+      }
       setEditingTransaction(null);
+      
       toast({
         title: "Transaksi Diperbarui",
         description: `Transaksi "${updatedTransaction.description}" telah berhasil diperbarui.`,
       });
-      if (isMobile) {
-        setIsModalOpen(false);
-      }
     } catch (e) {
       console.error("Error updating transaction: ", e);
       toast({
@@ -148,19 +154,20 @@ export default function HomePage() {
   };
 
   const handleCancelEdit = () => {
-    setEditingTransaction(null);
+    // Close modal first on mobile to prevent useEffect interference
     if (isMobile) {
       setIsModalOpen(false);
     }
+    setEditingTransaction(null);
   };
 
   React.useEffect(() => {
+    // Only auto-open modal when editing starts on mobile
     if (isMobile && editingTransaction && !isModalOpen) {
       setIsModalOpen(true);
     }
-    if (isMobile === false && isModalOpen) {
-        // setIsModalOpen(false); 
-    }
+    // Don't auto-close modal when switching to desktop as it might interrupt user flow
+    // User can manually close if needed
   }, [isMobile, editingTransaction, isModalOpen]);
 
 
@@ -249,16 +256,15 @@ export default function HomePage() {
               {isMobile === true && (
                 <>
                   <Button
-                    className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
-                    size="icon"
+                    className="fixed flex bottom-6 right-6 z-50 px-4 py-2 rounded-lg shadow-lg bg-primary hover:bg-primary/90 text-white"
                     onClick={() => {
                       setEditingTransaction(null); 
                       setIsModalOpen(true);
                     }}
                     aria-label="Tambah Transaksi Baru"
                   >
-                    <PlusCircle className="h-7 w-7" />
-                    <span className="sr-only">Tambah Transaksi Baru</span>
+                    <PlusCircle className="h-6 w-6" />
+                    <span>Tambah</span>
                   </Button>
                   <Dialog open={isModalOpen} onOpenChange={(open) => {
                     setIsModalOpen(open);

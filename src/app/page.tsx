@@ -7,7 +7,7 @@ import TransactionForm from "@/components/TransactionForm";
 import TransactionList from "@/components/TransactionList";
 import MonthlySummary from "@/components/MonthlySummary";
 import CategoryChart from "@/components/CategoryChart";
-// import FinancialInsight from "@/components/FinancialInsight"; // Temporarily commented out
+import FinancialInsight from "@/components/FinancialInsight";
 import type { Transaction } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListChecks, LineChart, Receipt, Lightbulb, Edit3, PlusCircle, Loader2, AlertTriangle } from "lucide-react";
@@ -307,8 +307,7 @@ export default function HomePage() {
                       />
                     </CardContent>
                   </Card>
-                  {/* 
-                  // Temporarily commented out FinancialInsight for static export
+                  
                   <Card className="shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center">
@@ -322,8 +321,7 @@ export default function HomePage() {
                         selectedMonth={selectedMonth}
                       />
                     </CardContent>
-                  </Card> 
-                  */}
+                  </Card>
                 </>
               )}
             </div>

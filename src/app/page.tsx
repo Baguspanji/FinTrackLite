@@ -121,6 +121,9 @@ export default function HomePage() {
     setEditingTransaction(transaction);
     if (isMobile) {
       setIsModalOpen(true);
+    } else {
+      // Scroll to top on desktop view
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 

@@ -54,11 +54,11 @@ export default function HomePage() {
       setError(null);
     }, (err) => {
       console.error("Error fetching transactions:", err);
-      setError("Failed to load transactions. Please try again later.");
+      setError("Gagal memuat transaksi. Silakan coba lagi nanti.");
       setIsLoading(false);
       toast({
         title: "Error",
-        description: "Could not fetch transactions.",
+        description: "Tidak dapat mengambil data transaksi.",
         variant: "destructive",
       });
     });
@@ -73,8 +73,8 @@ export default function HomePage() {
         date: Timestamp.fromDate(new Date(transaction.date)), // Convert JS Date to Timestamp
       });
       toast({
-        title: "Transaction Added",
-        description: `Transaction for "${transaction.description}" has been added.`,
+        title: "Transaksi Ditambahkan",
+        description: `Transaksi untuk "${transaction.description}" telah ditambahkan.`,
       });
       if (isMobile) {
         setIsModalOpen(false);
@@ -83,7 +83,7 @@ export default function HomePage() {
       console.error("Error adding transaction: ", e);
       toast({
         title: "Error",
-        description: "Could not add transaction.",
+        description: "Tidak dapat menambahkan transaksi.",
         variant: "destructive",
       });
     }
@@ -108,8 +108,8 @@ export default function HomePage() {
       });
       setEditingTransaction(null);
       toast({
-        title: "Transaction Updated",
-        description: `Transaction for "${updatedTransaction.description}" has been updated.`,
+        title: "Transaksi Diperbarui",
+        description: `Transaksi untuk "${updatedTransaction.description}" telah diperbarui.`,
       });
       if (isMobile) {
         setIsModalOpen(false);
@@ -118,7 +118,7 @@ export default function HomePage() {
       console.error("Error updating transaction: ", e);
       toast({
         title: "Error",
-        description: "Could not update transaction.",
+        description: "Tidak dapat memperbarui transaksi.",
         variant: "destructive",
       });
     }
@@ -130,14 +130,14 @@ export default function HomePage() {
     try {
       await deleteDoc(transactionDocRef);
       toast({
-        title: "Transaction Deleted",
-        description: "The transaction has been successfully deleted.",
+        title: "Transaksi Dihapus",
+        description: "Transaksi telah berhasil dihapus.",
       });
     } catch (e) {
       console.error("Error deleting transaction: ", e);
       toast({
         title: "Error",
-        description: "Could not delete transaction.",
+        description: "Tidak dapat menghapus transaksi.",
         variant: "destructive",
       });
     }
@@ -151,11 +151,31 @@ export default function HomePage() {
   };
 
   React.useEffect(() => {
+    // Logic to open modal when editingTransaction is set on mobile
     if (isMobile && editingTransaction && !isModalOpen) {
       setIsModalOpen(true);
     }
+    // Close modal if not mobile and modal is open (e.g. screen resize)
+    // This might need more nuanced handling depending on desired UX for screen resize
+    if (isMobile === false && isModalOpen) {
+        // setIsModalOpen(false); // Or, decide if it should stay open
+    }
   }, [isMobile, editingTransaction, isModalOpen]);
 
+
+  // Consistent initial rendering for SSR/hydration, content decided after 'isMobile' is determined client-side
+  if (isMobile === undefined && isLoading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-background text-foreground">
+        <Header />
+        <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
+          <div className="flex justify-center items-center h-64">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
@@ -180,7 +200,7 @@ export default function HomePage() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <LineChart className="mr-2 h-5 w-5 text-primary" />
-                    Monthly Overview
+                    Ringkasan Bulanan
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -196,7 +216,7 @@ export default function HomePage() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <LineChart className="mr-2 h-5 w-5 text-primary" />
-                    Expense Categories
+                    Kategori Pengeluaran
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -211,7 +231,7 @@ export default function HomePage() {
                 <CardHeader>
                   <CardTitle className="flex items-center">
                     <ListChecks className="mr-2 h-5 w-5 text-primary" />
-                    Transaction History
+                    Riwayat Transaksi
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -232,29 +252,30 @@ export default function HomePage() {
                     className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg"
                     size="icon"
                     onClick={() => {
-                      setEditingTransaction(null);
+                      setEditingTransaction(null); // Ensure we're adding a new transaction
                       setIsModalOpen(true);
                     }}
+                    aria-label="Tambah Transaksi Baru"
                   >
                     <PlusCircle className="h-7 w-7" />
-                    <span className="sr-only">Add New Transaction</span>
+                    <span className="sr-only">Tambah Transaksi Baru</span>
                   </Button>
                   <Dialog open={isModalOpen} onOpenChange={(open) => {
                     setIsModalOpen(open);
-                    if (!open) {
-                      setEditingTransaction(null);
+                    if (!open) { // If dialog is closed (either by X, overlay click, or cancel button)
+                      setEditingTransaction(null); // Clear editing state
                     }
                   }}>
                     <DialogContent className="p-4 sm:max-w-md">
                       <DialogHeader>
-                        <DialogTitle>{editingTransaction ? "Edit Transaction" : "Add New Transaction"}</DialogTitle>
+                        <DialogTitle>{editingTransaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}</DialogTitle>
                       </DialogHeader>
                       <div className="py-4">
                         <TransactionForm
                           addTransaction={addTransaction}
                           editingTransaction={editingTransaction}
                           onUpdateTransaction={handleUpdateTransaction}
-                          onCancelEdit={handleCancelEdit}
+                          onCancelEdit={handleCancelEdit} // This will also close modal via onOpenChange
                         />
                       </div>
                     </DialogContent>
@@ -262,13 +283,13 @@ export default function HomePage() {
                 </>
               )}
 
-              {(isMobile === false || isMobile === undefined) && (
+              {(isMobile === false || isMobile === undefined) && ( // Show on desktop or when isMobile is not determined
                 <>
                   <Card className="shadow-lg">
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         {editingTransaction ? <Edit3 className="mr-2 h-5 w-5 text-primary" /> : <Receipt className="mr-2 h-5 w-5 text-primary" />}
-                        {editingTransaction ? "Edit Transaction" : "Add New Transaction"}
+                        {editingTransaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -284,7 +305,7 @@ export default function HomePage() {
                     <CardHeader>
                       <CardTitle className="flex items-center">
                         <Lightbulb className="mr-2 h-5 w-5 text-primary" />
-                        AI Financial Insight
+                        Wawasan Keuangan AI
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -303,3 +324,4 @@ export default function HomePage() {
     </div>
   );
 }
+

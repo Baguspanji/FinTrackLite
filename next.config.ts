@@ -1,7 +1,7 @@
 import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
-  // output: 'export', // Required for static export to GitHub Pages
+  output: 'export', // Required for static export to GitHub Pages
   // IMPORTANT: Replace '<repository-name>' with your actual GitHub repository name.
   // For example, if your repo URL is https://github.com/your-username/my-fintrack-app,
   // then basePath should be '/my-fintrack-app'

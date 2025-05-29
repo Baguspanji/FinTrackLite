@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
   // IMPORTANT: Replace '<repository-name>' with your actual GitHub repository name.
   // For example, if your repo URL is https://github.com/your-username/my-fintrack-app,
   // then basePath should be '/my-fintrack-app'
-  basePath: '/<repository-name>',
+  basePath: 'https://github.com/Baguspanji/FinTrackLite',
   images: {
     // Image optimization via Next.js's default loader doesn't work well with static exports.
     // Setting unoptimized to true will serve images as-is.

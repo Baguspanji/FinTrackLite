@@ -271,7 +271,7 @@ export default function TransactionForm({
           )}
         />
 
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-white">
           {editingTransaction ? (
             <>
               <Save className="mr-2 h-4 w-4" /> Perbarui Transaksi

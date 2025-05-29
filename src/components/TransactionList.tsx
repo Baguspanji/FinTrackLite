@@ -43,20 +43,27 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
     return <p className="text-muted-foreground text-center py-8">No transactions yet. Add one to get started!</p>;
   }
 
-  // Transactions are already sorted by date (desc) from Firestore query in page.tsx
-  // const sortedTransactions = [...transactions].sort((a, b) => b.date.getTime() - a.date.getTime());
-  const sortedTransactions = transactions;
+  const sortedTransactions = transactions; // Already sorted by Firestore query
 
+  const handleDeleteClick = (transaction: Transaction) => {
+    setTransactionToDelete(transaction);
+  };
 
   const handleDeleteConfirm = () => {
     if (transactionToDelete) {
       onDeleteTransaction(transactionToDelete.id);
-      setTransactionToDelete(null);
+      setTransactionToDelete(null); // Close dialog
+    }
+  };
+
+  const handleAlertOpenChange = (open: boolean) => {
+    if (!open) {
+      setTransactionToDelete(null); // Ensure state is cleared if dialog is closed
     }
   };
 
   return (
-    <>
+    <AlertDialog open={transactionToDelete !== null} onOpenChange={handleAlertOpenChange}>
       <ScrollArea className="h-[400px] rounded-md border">
         <Table>
           <TableHeader>
@@ -111,7 +118,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                        <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setTransactionToDelete(transaction)}
+                        onClick={() => handleDeleteClick(transaction)}
                         aria-label="Delete transaction"
                         className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
                       >
@@ -125,9 +132,10 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
           </TableBody>
         </Table>
       </ScrollArea>
-      {transactionToDelete && (
-         <AlertDialog open={!!transactionToDelete} onOpenChange={(open) => !open && setTransactionToDelete(null)}>
-          <AlertDialogContent>
+      
+      <AlertDialogContent>
+        {transactionToDelete && (
+          <>
             <AlertDialogHeader>
               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -136,14 +144,14 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel onClick={() => setTransactionToDelete(null)}>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>Cancel</AlertDialogCancel> {/* Will trigger onOpenChange(false) */}
               <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                 Delete
               </AlertDialogAction>
             </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
-    </>
+          </>
+        )}
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

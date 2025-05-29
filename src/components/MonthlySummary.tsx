@@ -6,7 +6,7 @@ import { format, addMonths, subMonths } from "date-fns";
 import { id } from "date-fns/locale"; // Import Indonesian locale for date-fns
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, ArrowRight, TrendingUp, TrendingDown, DollarSign } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; // Removed CardDescription
 
 interface MonthlySummaryProps {
   transactions: Transaction[];
@@ -50,13 +50,13 @@ export default function MonthlySummary({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
+        <Button variant="outline" size="icon" onClick={handlePreviousMonth} aria-label="Bulan Sebelumnya">
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h3 className="text-xl font-semibold text-foreground">
           {format(selectedMonth, "MMMM yyyy", { locale: id })} 
         </h3>
-        <Button variant="outline" size="icon" onClick={handleNextMonth} disabled={selectedMonth.getMonth() === new Date().getMonth() && selectedMonth.getFullYear() === new Date().getFullYear()}>
+        <Button variant="outline" size="icon" onClick={handleNextMonth} disabled={selectedMonth.getMonth() === new Date().getMonth() && selectedMonth.getFullYear() === new Date().getFullYear()} aria-label="Bulan Berikutnya">
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
@@ -98,3 +98,4 @@ export default function MonthlySummary({
     </div>
   );
 }
+

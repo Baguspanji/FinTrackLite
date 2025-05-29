@@ -1,13 +1,13 @@
+
 "use client";
 
 import type { Transaction, Category } from "@/lib/types";
-import { CATEGORIES_ARRAY } from "@/lib/types";
+import { CATEGORIES_ARRAY_ID, getCategoryIndonesianName } from "@/lib/types";
 import {
   PieChart,
   Pie,
   Cell,
   Tooltip as RechartsTooltip,
-  Legend,
 } from "recharts";
 import {
   ChartContainer,
@@ -37,7 +37,7 @@ const chartColors = [
 ];
 
 export default function CategoryChart({ transactions, selectedMonth }: CategoryChartProps) {
-  const [chartData, setChartData] = React.useState<Array<{ name: Category; value: number; fill: string; icon?: React.ElementType }>>([]);
+  const [chartData, setChartData] = React.useState<Array<{ name: string; value: number; fill: string; icon?: React.ElementType, originalName: Category }>>([]);
   
   React.useEffect(() => {
     const currentMonthExpenses = transactions.filter(
@@ -52,12 +52,13 @@ export default function CategoryChart({ transactions, selectedMonth }: CategoryC
       return acc;
     }, {} as Record<Category, number>);
 
-    const formattedChartData = CATEGORIES_ARRAY.filter(category => expenseByCategory[category] > 0)
+    const formattedChartData = CATEGORIES_ARRAY_ID.filter(category => expenseByCategory[category] > 0)
       .map((category, index) => ({
-        name: category,
+        name: getCategoryIndonesianName(category), // Use Indonesian name for display
         value: expenseByCategory[category] || 0,
         fill: chartColors[index % chartColors.length],
         icon: getCategoryIcon(category),
+        originalName: category, // Keep original name for config key
       }));
     
     setChartData(formattedChartData);
@@ -65,11 +66,11 @@ export default function CategoryChart({ transactions, selectedMonth }: CategoryC
 
 
   if (chartData.length === 0) {
-    return <p className="text-muted-foreground text-center py-8">No expense data for this month to display chart.</p>;
+    return <p className="text-muted-foreground text-center py-8">Tidak ada data pengeluaran untuk bulan ini untuk ditampilkan dalam grafik.</p>;
   }
   
   const chartConfig = Object.fromEntries(
-      chartData.map(item => [item.name, { label: item.name, color: item.fill, icon: item.icon }])
+      chartData.map(item => [item.originalName, { label: item.name, color: item.fill, icon: item.icon }])
   );
 
 
@@ -78,12 +79,12 @@ export default function CategoryChart({ transactions, selectedMonth }: CategoryC
       <PieChart>
         <RechartsTooltip
           cursor={false}
-          content={<ChartTooltipContent hideLabel indicator="dot" />}
+          content={<ChartTooltipContent hideLabel indicator="dot" nameKey="name" />}
         />
         <Pie
           data={chartData}
           dataKey="value"
-          nameKey="name"
+          nameKey="name" // This will be the Indonesian name
           cx="50%"
           cy="50%"
           outerRadius={100}
@@ -92,7 +93,7 @@ export default function CategoryChart({ transactions, selectedMonth }: CategoryC
             const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
             const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
             const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
-            if ((percent * 100) < 5) return null; // Don't render label for small slices
+            if ((percent * 100) < 5) return null; 
             return (
               <text x={x} y={y} fill="white" textAnchor={x > cx ? 'start' : 'end'} dominantBaseline="central" fontSize="12px">
                 {`${(percent * 100).toFixed(0)}%`}
@@ -104,8 +105,9 @@ export default function CategoryChart({ transactions, selectedMonth }: CategoryC
             <Cell key={`cell-${index}`} fill={entry.fill} />
           ))}
         </Pie>
-        <ChartLegend content={<ChartLegendContent nameKey="name" />} />
+        <ChartLegend content={<ChartLegendContent nameKey="name"/>} />
       </PieChart>
     </ChartContainer>
   );
 }
+

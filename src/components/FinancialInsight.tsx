@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -31,15 +32,14 @@ export default function FinancialInsight({ transactions, selectedMonth }: Financ
     );
 
     if (currentMonthTransactions.length === 0) {
-      setError("No transactions for the selected month to analyze.");
+      setError("Tidak ada transaksi untuk bulan yang dipilih untuk dianalisis.");
       setIsLoading(false);
       return;
     }
 
-    // Prepare data for AI - serialize date objects carefully
     const serializableTransactions = currentMonthTransactions.map(tx => ({
       ...tx,
-      date: tx.date.toISOString().split('T')[0], // Format as YYYY-MM-DD
+      date: tx.date.toISOString().split('T')[0], 
     }));
 
 
@@ -50,10 +50,10 @@ export default function FinancialInsight({ transactions, selectedMonth }: Financ
       setInsight(result.insight);
     } catch (e) {
       console.error("Error generating financial insight:", e);
-      setError("Failed to generate insight. Please try again.");
+      setError("Gagal menghasilkan wawasan. Silakan coba lagi.");
       toast({
         title: "Error",
-        description: "Could not generate financial insight.",
+        description: "Tidak dapat menghasilkan wawasan keuangan.",
         variant: "destructive",
       });
     } finally {
@@ -69,7 +69,7 @@ export default function FinancialInsight({ transactions, selectedMonth }: Financ
         ) : (
           <Sparkles className="mr-2 h-4 w-4" />
         )}
-        Get AI Financial Insight
+        Dapatkan Wawasan Keuangan AI
       </Button>
 
       {error && (
@@ -83,7 +83,7 @@ export default function FinancialInsight({ transactions, selectedMonth }: Financ
       {insight && (
         <Alert variant="default" className="bg-accent/30 border-accent">
           <Sparkles className="h-4 w-4 text-accent-foreground" />
-          <AlertTitle className="text-accent-foreground">Financial Tip</AlertTitle>
+          <AlertTitle className="text-accent-foreground">Tips Keuangan</AlertTitle>
           <AlertDescription className="text-accent-foreground/90">
             {insight}
           </AlertDescription>
@@ -92,3 +92,4 @@ export default function FinancialInsight({ transactions, selectedMonth }: Financ
     </div>
   );
 }
+

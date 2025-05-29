@@ -4,7 +4,7 @@
 import type { Transaction } from "@/lib/types";
 import { getCategoryIcon, TransactionTypeIcons } from "@/components/icons";
 import { format } from "date-fns";
-import { id } from "date-fns/locale"; // Import Indonesian locale
+import { id } from "date-fns/locale"; 
 import {
   Table,
   TableBody,
@@ -29,6 +29,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import * as React from "react";
+import { getCategoryIndonesianName } from "@/lib/types";
 
 
 interface TransactionListProps {
@@ -44,7 +45,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
     return <p className="text-muted-foreground text-center py-8">Belum ada transaksi. Tambahkan satu untuk memulai!</p>;
   }
 
-  const sortedTransactions = transactions; // Already sorted by Firestore query
+  const sortedTransactions = transactions; 
 
   const handleDeleteClick = (transaction: Transaction) => {
     setTransactionToDelete(transaction);
@@ -53,13 +54,13 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
   const handleDeleteConfirm = () => {
     if (transactionToDelete) {
       onDeleteTransaction(transactionToDelete.id);
-      setTransactionToDelete(null); // Close dialog
+      setTransactionToDelete(null); 
     }
   };
 
   const handleAlertOpenChange = (open: boolean) => {
     if (!open) {
-      setTransactionToDelete(null); // Ensure state is cleared if dialog is closed
+      setTransactionToDelete(null); 
     }
   };
   
@@ -93,7 +94,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                   <TableCell>
                     <Badge variant="secondary" className="flex items-center w-fit">
                       <Icon className="mr-1 h-3 w-3" />
-                      {transaction.category}
+                      {getCategoryIndonesianName(transaction.category)}
                     </Badge>
                   </TableCell>
                   <TableCell
@@ -149,7 +150,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Batal</AlertDialogCancel> {/* Will trigger onOpenChange(false) */}
+              <AlertDialogCancel>Batal</AlertDialogCancel> 
               <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                 Hapus
               </AlertDialogAction>
@@ -160,3 +161,4 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
     </AlertDialog>
   );
 }
+

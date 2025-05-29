@@ -32,24 +32,24 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import type { Transaction, TransactionType, Category } from "@/lib/types";
-import { CATEGORIES_ARRAY } from "@/lib/types";
+import { CATEGORIES_ARRAY_ID, getCategoryIndonesianName } from "@/lib/types";
+
 
 const transactionFormSchema = z.object({
   date: z.date({
-    required_error: "A date is required.",
+    required_error: "Tanggal wajib diisi.",
   }),
   amount: z.coerce
-    .number({ invalid_type_error: "Amount must be a number." })
-    .positive("Amount must be positive."),
-  category: z.custom<Category>(value => CATEGORIES_ARRAY.includes(value as Category), {
-    message: "Invalid category",
+    .number({ invalid_type_error: "Jumlah harus berupa angka." })
+    .positive("Jumlah harus positif."),
+  category: z.custom<Category>(value => CATEGORIES_ARRAY_ID.includes(value as Category), {
+    message: "Kategori tidak valid",
   }),
-  description: z.string().min(1, "Description is required.").max(100),
+  description: z.string().min(1, "Deskripsi wajib diisi.").max(100, "Deskripsi maksimal 100 karakter."),
   type: z.enum(["income", "expense"], {
-    required_error: "You need to select a transaction type.",
+    required_error: "Anda harus memilih tipe transaksi.",
   }),
 });
 
@@ -62,39 +62,20 @@ interface TransactionFormProps {
   onCancelEdit?: () => void;
 }
 
-// Default values for a new form, ensuring date is initially undefined or null for hydration safety.
-// The actual current date for new transactions will be set in useEffect.
-const newTransactionDefaults: TransactionFormValues = {
-  date: new Date(), // This will be overridden by useEffect for new transactions to ensure client-side consistency
-  amount: NaN,
-  category: CATEGORIES_ARRAY[0],
-  description: "",
-  type: "expense",
-};
-
-
 export default function TransactionForm({
   addTransaction,
   editingTransaction,
   onUpdateTransaction,
   onCancelEdit
 }: TransactionFormProps) {
-  const { toast } = useToast();
   const form = useForm<TransactionFormValues>({
     resolver: zodResolver(transactionFormSchema),
-    // Provide defaultValues that won't cause hydration mismatch for `date`.
-    // `date` will be properly set in useEffect.
     defaultValues: {
       amount: NaN,
-      category: CATEGORIES_ARRAY[0],
+      category: CATEGORIES_ARRAY_ID[0],
       description: "",
       type: "expense",
-      // date: undefined, // Explicitly undefined or let resolver handle if schema allows
-      // Let's use a placeholder date that will be immediately overwritten by useEffect
-      // Or rely on zod resolver if possible. For now, let it be potentially new Date() but rely on reset.
-      // The most robust is to make `date` field itself optional in schema for defaultValues,
-      // or ensure reset logic in useEffect always sets it.
-      date: new Date(0), // A fixed, non-dynamic date for initial defaultValues
+      date: new Date(0), 
     },
   });
 
@@ -102,37 +83,30 @@ export default function TransactionForm({
     if (editingTransaction) {
       form.reset({
         ...editingTransaction,
-        date: new Date(editingTransaction.date), // Ensure it's a Date object
+        date: new Date(editingTransaction.date),
         amount: Number(editingTransaction.amount),
       });
     } else {
-      // For new transactions, reset with current values client-side
       form.reset({
-        date: new Date(), // Set current date here, AFTER initial mount/hydration
+        date: new Date(), 
         amount: NaN,
-        category: CATEGORIES_ARRAY[0],
+        category: CATEGORIES_ARRAY_ID[0],
         description: "",
         type: "expense",
       });
     }
-  }, [editingTransaction, form.reset]); // form.reset is generally stable
+  }, [editingTransaction, form.reset]); 
 
   function onSubmit(data: TransactionFormValues) {
     if (editingTransaction && onUpdateTransaction) {
       onUpdateTransaction({ ...data, id: editingTransaction.id });
     } else {
       addTransaction(data);
-      // Toast is kept from original
-      // toast({
-      //   title: "Transaction Added",
-      //   description: `${data.type === "income" ? "Income" : "Expense"} of $${data.amount.toFixed(2)} for ${data.category} added.`,
-      // });
     }
-    // Reset form to its default state for a new transaction, client-side
     form.reset({
         date: new Date(),
         amount: NaN,
-        category: CATEGORIES_ARRAY[0],
+        category: CATEGORIES_ARRAY_ID[0],
         description: "",
         type: "expense",
       });
@@ -142,11 +116,10 @@ export default function TransactionForm({
     if (onCancelEdit) {
       onCancelEdit();
     }
-    // Reset form to its default state for a new transaction, client-side
      form.reset({
         date: new Date(),
         amount: NaN,
-        category: CATEGORIES_ARRAY[0],
+        category: CATEGORIES_ARRAY_ID[0],
         description: "",
         type: "expense",
       });
@@ -161,7 +134,7 @@ export default function TransactionForm({
           name="type"
           render={({ field }) => (
             <FormItem className="space-y-3">
-              <FormLabel>Type</FormLabel>
+              <FormLabel>Tipe</FormLabel>
               <FormControl>
                 <RadioGroup
                   onValueChange={field.onChange}
@@ -172,13 +145,13 @@ export default function TransactionForm({
                     <FormControl>
                       <RadioGroupItem value="expense" />
                     </FormControl>
-                    <FormLabel className="font-normal">Expense</FormLabel>
+                    <FormLabel className="font-normal">Pengeluaran</FormLabel>
                   </FormItem>
                   <FormItem className="flex items-center space-x-2 space-y-0">
                     <FormControl>
                       <RadioGroupItem value="income" />
                     </FormControl>
-                    <FormLabel className="font-normal">Income</FormLabel>
+                    <FormLabel className="font-normal">Pemasukan</FormLabel>
                   </FormItem>
                 </RadioGroup>
               </FormControl>
@@ -192,15 +165,15 @@ export default function TransactionForm({
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Amount</FormLabel>
+              <FormLabel>Jumlah</FormLabel>
               <FormControl>
                 <Input
                     type="number"
-                    placeholder="0.00"
+                    placeholder="0"
                     {...field}
                     value={isNaN(field.value) ? '' : field.value}
-                    onChange={(e) => field.onChange(parseFloat(e.target.value) || '')} // Ensure it's a number or empty string
-                    step="0.01"
+                    onChange={(e) => field.onChange(parseFloat(e.target.value) || '')} 
+                    step="1" // For IDR, typically no decimals
                 />
               </FormControl>
               <FormMessage />
@@ -213,17 +186,17 @@ export default function TransactionForm({
           name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel>Kategori</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder="Pilih kategori" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {CATEGORIES_ARRAY.map((category) => (
+                  {CATEGORIES_ARRAY_ID.map((category) => (
                     <SelectItem key={category} value={category}>
-                      {category}
+                      {getCategoryIndonesianName(category)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -238,7 +211,7 @@ export default function TransactionForm({
           name="date"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Date</FormLabel>
+              <FormLabel>Tanggal</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
@@ -246,13 +219,13 @@ export default function TransactionForm({
                       variant={"outline"}
                       className={cn(
                         "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground" // This handles undefined/null field.value gracefully
+                        !field.value && "text-muted-foreground" 
                       )}
                     >
                       {field.value ? (
-                        format(field.value, "PPP")
+                        format(field.value, "PPP", { locale: require('date-fns/locale/id') })
                       ) : (
-                        <span>Pick a date</span>
+                        <span>Pilih tanggal</span>
                       )}
                       <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
@@ -267,6 +240,7 @@ export default function TransactionForm({
                       date > new Date() || date < new Date("1900-01-01")
                     }
                     initialFocus
+                    locale={require('date-fns/locale/id')}
                   />
                 </PopoverContent>
               </Popover>
@@ -280,9 +254,9 @@ export default function TransactionForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>Deskripsi</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Groceries, Salary" {...field} />
+                <Input placeholder="cth: Belanja bulanan, Gaji" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -292,20 +266,21 @@ export default function TransactionForm({
         <Button type="submit" className="w-full">
           {editingTransaction ? (
             <>
-              <Save className="mr-2 h-4 w-4" /> Update Transaction
+              <Save className="mr-2 h-4 w-4" /> Perbarui Transaksi
             </>
           ) : (
             <>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add Transaction
+              <PlusCircle className="mr-2 h-4 w-4" /> Tambah Transaksi
             </>
           )}
         </Button>
         {editingTransaction && (
           <Button type="button" variant="outline" onClick={handleCancel} className="w-full mt-2">
-            <XCircle className="mr-2 h-4 w-4" /> Cancel Edit
+            <XCircle className="mr-2 h-4 w-4" /> Batal Ubah
           </Button>
         )}
       </form>
     </Form>
   );
 }
+

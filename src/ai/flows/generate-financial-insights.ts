@@ -1,3 +1,4 @@
+
 // src/ai/flows/generate-financial-insights.ts
 'use server';
 
@@ -23,7 +24,7 @@ const GenerateFinancialInsightOutputSchema = z.object({
   insight: z
     .string()
     .describe(
-      'A personalized and brief financial insight or suggestion regarding potential tax deductions or savings strategies based on the provided monthly transaction data.'
+      'Wawasan atau saran keuangan yang dipersonalisasi dan singkat mengenai potensi pengurangan pajak atau strategi penghematan berdasarkan data transaksi bulanan yang diberikan, dalam Bahasa Indonesia.'
     ),
 });
 export type GenerateFinancialInsightOutput = z.infer<typeof GenerateFinancialInsightOutputSchema>;
@@ -38,9 +39,9 @@ const prompt = ai.definePrompt({
   name: 'generateFinancialInsightPrompt',
   input: {schema: GenerateFinancialInsightInputSchema},
   output: {schema: GenerateFinancialInsightOutputSchema},
-  prompt: `You are a personal finance advisor. Analyze the user's monthly transactions and provide a personalized, brief, and helpful insight regarding potential tax deductions or savings strategies.
+  prompt: `Anda adalah seorang penasihat keuangan pribadi. Analisis transaksi bulanan pengguna dan berikan wawasan yang dipersonalisasi, singkat, dan bermanfaat mengenai potensi pengurangan pajak atau strategi penghematan. Pastikan respons Anda dalam Bahasa Indonesia.
 
-  Transactions: {{{monthlyTransactions}}} `,
+  Transaksi: {{{monthlyTransactions}}}`,
 });
 
 const generateFinancialInsightFlow = ai.defineFlow(

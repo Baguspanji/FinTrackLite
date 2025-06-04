@@ -325,7 +325,7 @@ export default function HomePage() {
                     <DialogContent className="p-4 sm:max-w-md rounded-lg">
                       <DialogHeader>
                         <DialogTitle className="text-xl">{editingTransaction ? "Ubah Transaksi" : "Tambah Transaksi Baru"}</DialogTitle>
-                         <DialogDescription>
+                        <DialogDescription>
                           {editingTransaction ? "Perbarui detail transaksi Anda di bawah ini." : "Masukkan detail transaksi baru Anda."}
                         </DialogDescription>
                       </DialogHeader>
@@ -381,7 +381,7 @@ export default function HomePage() {
           </div>
         )}
         {!isLoadingTransactions && !error && transactions.length === 0 && currentUser && (
-           <Card className="shadow-lg mt-10 col-span-full">
+          <Card className="shadow-lg mt-10 col-span-full">
             <CardHeader className="items-center">
               <CardTitle className="text-xl text-center">Mulai Lacak Keuangan Anda!</CardTitle>
             </CardHeader>
@@ -392,7 +392,7 @@ export default function HomePage() {
               {isMobile === false && (
                 <p className="text-sm text-muted-foreground">Gunakan formulir di sebelah kanan.</p>
               )}
-               {isMobile === true && (
+              {isMobile === true && (
                 <Button onClick={() => { setEditingTransaction(null); setIsModalOpen(true); }}>
                   <PlusCircle className="mr-2 h-5 w-5" /> Tambah Transaksi
                 </Button>

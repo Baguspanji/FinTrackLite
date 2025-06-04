@@ -1,4 +1,3 @@
-
 "use client";
 
 import * as React from "react";
@@ -33,6 +32,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       document.documentElement.classList.remove("dark");
     }
     localStorage.setItem("theme", theme);
+
+    // Update PWA theme color dynamically
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', theme === 'dark' ? '#4DAEFF' : '#2A9DF4');
+    }
   }, [theme]);
 
   const toggleTheme = () => {

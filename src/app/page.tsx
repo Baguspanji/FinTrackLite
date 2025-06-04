@@ -45,18 +45,18 @@ export default function HomePage() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   React.useEffect(() => {
-    if (authLoading) { 
-      setIsLoadingTransactions(true); 
+    if (authLoading) {
+      setIsLoadingTransactions(true);
       return;
     }
 
     if (!currentUser) {
       setTransactions([]);
       setIsLoadingTransactions(false);
-      setError(null); 
+      setError(null);
       return;
     }
-    
+
     setIsLoadingTransactions(true);
     const transactionsColPath = `users/${currentUser.uid}/transactions`;
     const transactionsCol = collection(db, transactionsColPath);
@@ -87,7 +87,7 @@ export default function HomePage() {
 
     return () => unsubscribe();
   }, [currentUser, authLoading, toast]);
-  
+
   const formatCurrencyForToast = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
@@ -103,12 +103,12 @@ export default function HomePage() {
         ...transaction,
         date: Timestamp.fromDate(new Date(transaction.date)),
       });
-      
+
       toast({
         title: "Transaksi Ditambahkan",
         description: `Transaksi sebesar ${formatCurrencyForToast(transaction.amount)} untuk "${transaction.description}" telah ditambahkan.`,
       });
-      
+
       if (isMobile) {
         setIsModalOpen(false);
       }
@@ -141,12 +141,12 @@ export default function HomePage() {
         ...dataToUpdate,
         date: Timestamp.fromDate(new Date(dataToUpdate.date)),
       });
-      
+
       if (isMobile) {
         setIsModalOpen(false);
       }
       setEditingTransaction(null);
-      
+
       toast({
         title: "Transaksi Diperbarui",
         description: `Transaksi "${updatedTransaction.description}" telah berhasil diperbarui.`,
@@ -160,7 +160,7 @@ export default function HomePage() {
       });
     }
   };
-  
+
   const handleDeleteTransaction = async (transactionId: string) => {
     if (!transactionId || !currentUser) return;
     const transactionDocRef = doc(db, `users/${currentUser.uid}/transactions`, transactionId);
@@ -193,8 +193,7 @@ export default function HomePage() {
     }
   }, [isMobile, editingTransaction, isModalOpen]);
 
-  // Initial loading state for auth and mobile detection
-  if (authLoading || isMobile === undefined) { 
+  if (authLoading || isMobile === undefined) {
     return (
       <div className="flex flex-col min-h-screen">
         <Header />
@@ -228,12 +227,12 @@ export default function HomePage() {
       </div>
     );
   }
-  
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <main className="flex-grow container mx-auto p-4 md:p-6 lg:p-8">
-        {isLoadingTransactions && !transactions.length && ( 
+        {isLoadingTransactions && !transactions.length && (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-12 w-12 animate-spin text-primary" />
             <p className="ml-4 text-lg text-foreground">Memuat transaksi...</p>
@@ -246,9 +245,8 @@ export default function HomePage() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
-        {(!isLoadingTransactions || transactions.length > 0) && !error && ( 
+        {(!isLoadingTransactions || transactions.length > 0) && !error && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
@@ -269,7 +267,7 @@ export default function HomePage() {
               <Accordion type="single" collapsible className="w-full">
                 <AccordionItem value="item-kategori" className="border-none">
                   <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
-                    <AccordionTrigger className="hover:no-underline p-6 w-full rounded-t-lg">
+                    <AccordionTrigger className="hover:no-underline p-6 w-full rounded-t-lg [&[data-state=closed]]:rounded-b-lg">
                       <CardTitle className="flex items-center text-xl font-semibold">
                         <BarChart3 className="mr-3 h-6 w-6 text-primary" />
                         Kategori Pengeluaran
@@ -286,7 +284,7 @@ export default function HomePage() {
                   </Card>
                 </AccordionItem>
               </Accordion>
-              
+
               <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                 <CardHeader>
                   <CardTitle className="flex items-center text-xl font-semibold">
@@ -295,23 +293,23 @@ export default function HomePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <TransactionList 
+                  <TransactionList
                     transactions={transactions}
-                    onEditTransaction={handleEditTransaction} 
+                    selectedMonth={selectedMonth}
+                    onEditTransaction={handleEditTransaction}
                     onDeleteTransaction={handleDeleteTransaction}
                   />
                 </CardContent>
               </Card>
             </div>
 
-            {/* Right Column (Desktop) / Modal Trigger (Mobile) */}
             <div className="lg:col-span-1 space-y-6">
               {isMobile === true && (
                 <>
                   <Button
                     className="fixed flex items-center bottom-6 right-6 z-50 px-4 py-3 h-14 w-14 rounded-full shadow-lg bg-primary hover:bg-primary/90 text-primary-foreground text-lg justify-center"
                     onClick={() => {
-                      setEditingTransaction(null); 
+                      setEditingTransaction(null);
                       setIsModalOpen(true);
                     }}
                     aria-label="Tambah Transaksi Baru"
@@ -320,8 +318,8 @@ export default function HomePage() {
                   </Button>
                   <Dialog open={isModalOpen} onOpenChange={(open) => {
                     setIsModalOpen(open);
-                    if (!open) { 
-                      setEditingTransaction(null); 
+                    if (!open) {
+                      setEditingTransaction(null);
                     }
                   }}>
                     <DialogContent className="p-4 sm:max-w-md rounded-lg">
@@ -336,7 +334,7 @@ export default function HomePage() {
                           addTransaction={addTransaction}
                           editingTransaction={editingTransaction}
                           onUpdateTransaction={handleUpdateTransaction}
-                          onCancelEdit={handleCancelEdit} 
+                          onCancelEdit={handleCancelEdit}
                         />
                       </div>
                     </DialogContent>
@@ -344,7 +342,7 @@ export default function HomePage() {
                 </>
               )}
 
-              {(isMobile === false) && ( 
+              {(isMobile === false) && (
                 <>
                   <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardHeader>
@@ -362,7 +360,7 @@ export default function HomePage() {
                       />
                     </CardContent>
                   </Card>
-                  
+
                   <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
                     <CardHeader>
                       <CardTitle className="flex items-center text-xl font-semibold">
@@ -382,7 +380,6 @@ export default function HomePage() {
             </div>
           </div>
         )}
-        {/* Fallback if no transactions and not loading and no error (e.g. new user) */}
         {!isLoadingTransactions && !error && transactions.length === 0 && currentUser && (
            <Card className="shadow-lg mt-10 col-span-full">
             <CardHeader className="items-center">
@@ -407,3 +404,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

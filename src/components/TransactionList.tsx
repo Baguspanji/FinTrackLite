@@ -4,7 +4,7 @@
 import type { Transaction } from "@/lib/types";
 import { getCategoryIcon, TransactionTypeIcons } from "@/components/icons";
 import { format } from "date-fns";
-import { id } from "date-fns/locale"; 
+import { id } from "date-fns/locale";
 import {
   Table,
   TableBody,
@@ -36,19 +36,31 @@ import { useIsMobile } from "@/hooks/use-mobile";
 
 interface TransactionListProps {
   transactions: Transaction[];
+  selectedMonth: Date; // Added selectedMonth prop
   onEditTransaction: (transaction: Transaction) => void;
   onDeleteTransaction: (transactionId: string) => void;
 }
 
-export default function TransactionList({ transactions, onEditTransaction, onDeleteTransaction }: TransactionListProps) {
+export default function TransactionList({
+  transactions,
+  selectedMonth, // Destructure selectedMonth
+  onEditTransaction,
+  onDeleteTransaction
+}: TransactionListProps) {
   const [transactionToDelete, setTransactionToDelete] = React.useState<Transaction | null>(null);
   const isMobile = useIsMobile();
 
-  if (transactions.length === 0) {
-    return <p className="text-muted-foreground text-center py-8">Belum ada transaksi. Tambahkan satu untuk memulai!</p>;
-  }
+  const filteredTransactions = React.useMemo(() => {
+    return transactions.filter(
+      (t) =>
+        t.date.getFullYear() === selectedMonth.getFullYear() &&
+        t.date.getMonth() === selectedMonth.getMonth()
+    ).sort((a,b) => b.date.getTime() - a.date.getTime()); // Also sort by date within the month
+  }, [transactions, selectedMonth]);
 
-  const sortedTransactions = transactions; 
+  if (filteredTransactions.length === 0) {
+    return <p className="text-muted-foreground text-center py-8">Belum ada transaksi untuk bulan ini. Tambahkan satu untuk memulai!</p>;
+  }
 
   const handleDeleteClick = (transaction: Transaction) => {
     setTransactionToDelete(transaction);
@@ -57,16 +69,16 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
   const handleDeleteConfirm = () => {
     if (transactionToDelete) {
       onDeleteTransaction(transactionToDelete.id);
-      setTransactionToDelete(null); 
+      setTransactionToDelete(null);
     }
   };
 
   const handleAlertOpenChange = (open: boolean) => {
     if (!open) {
-      setTransactionToDelete(null); 
+      setTransactionToDelete(null);
     }
   };
-  
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
@@ -77,7 +89,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
         // Mobile view - Card layout
         <ScrollArea className="h-[400px] rounded-md [&>[data-radix-scroll-area-viewport]]:scrollbar-none">
           <div className="space-y-2 p-1">
-            {sortedTransactions.map((transaction) => {
+            {filteredTransactions.map((transaction) => {
               const Icon = getCategoryIcon(transaction.category);
               const TypeIcon = TransactionTypeIcons[transaction.type];
               return (
@@ -85,7 +97,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                   <CardContent className="p-0">
                     <div className="flex items-center justify-between mb-2">
                       <div className="text-sm font-medium text-muted-foreground">
-                        {format(transaction.date, "dd MMM", { locale: id })}
+                        {format(transaction.date, "dd MMM yyyy", { locale: id })}
                       </div>
                       <div className="flex items-center space-x-1">
                         <Button
@@ -115,7 +127,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                       <div
                         className={`font-semibold text-sm flex items-center ${
                           transaction.type === "income"
-                            ? "text-accent" // Changed from text-accent-foreground
+                            ? "text-accent"
                             : "text-destructive"
                         }`}
                       >
@@ -142,7 +154,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[100px]">Tanggal</TableHead>
+                <TableHead className="w-[120px]">Tanggal</TableHead> {/* Increased width for full date */}
                 <TableHead>Deskripsi</TableHead>
                 <TableHead>Kategori</TableHead>
                 <TableHead className="text-right">Jumlah</TableHead>
@@ -150,13 +162,13 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sortedTransactions.map((transaction) => {
+              {filteredTransactions.map((transaction) => {
                 const Icon = getCategoryIcon(transaction.category);
                 const TypeIcon = TransactionTypeIcons[transaction.type];
                 return (
                   <TableRow key={transaction.id}>
                     <TableCell className="font-medium">
-                      {format(transaction.date, "dd MMM", { locale: id })}
+                      {format(transaction.date, "dd MMM yyyy", { locale: id })} {/* Full date format */}
                     </TableCell>
                     <TableCell>{transaction.description}</TableCell>
                     <TableCell>
@@ -168,7 +180,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
                     <TableCell
                       className={`text-right font-semibold ${
                         transaction.type === "income"
-                          ? "text-accent" // Changed from text-accent-foreground
+                          ? "text-accent"
                           : "text-destructive"
                       }`}
                     >
@@ -207,7 +219,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
           </Table>
         </ScrollArea>
       )}
-      
+
       <AlertDialogContent>
         {transactionToDelete && (
           <>
@@ -219,7 +231,7 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Batal</AlertDialogCancel> 
+              <AlertDialogCancel>Batal</AlertDialogCancel>
               <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive hover:bg-destructive/90">
                 Hapus
               </AlertDialogAction>
@@ -230,3 +242,5 @@ export default function TransactionList({ transactions, onEditTransaction, onDel
     </AlertDialog>
   );
 }
+
+    
